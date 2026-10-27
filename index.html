@@ -152,6 +152,13 @@
     .privacy-detail { margin-top:22px; }
     .privacy-detail summary { font-size:13px; font-weight:400; color:var(--muted); }
     .privacy-detail p { color:var(--muted); font-size:13px; margin-top:7px; }
+    .copy-dialog { width:min(480px,calc(100% - 40px)); max-height:calc(100dvh - 40px); overflow:auto; padding:31px; border:1px solid var(--line); border-radius:12px; color:var(--text); background:var(--panel); box-shadow:0 18px 64px rgb(0 0 0 / 18%); }
+    .copy-dialog::backdrop { background:rgb(0 0 0 / 42%); }
+    .copy-dialog h2 { margin-top:17px; font-size:21px; }
+    .copy-dialog p { margin-top:10px; font-size:15px; color:var(--muted); }
+    .copy-dialog .copy-symbol { display:grid; place-items:center; width:44px; height:44px; border-radius:10px; color:var(--text); background:var(--soft); }
+    .copy-dialog .btn { width:100%; margin-top:25px; }
+    .copy-dialog textarea { min-height:180px; }
     @keyframes spin { to { transform:rotate(360deg); } }
     @media(min-width:1100px) { .sidebar { position:sticky; top:0; height:calc(100vh - 76px); } }
     @media(max-width:1050px) { .workspace { grid-template-columns:200px minmax(0,1fr); } .stage { padding:32px 27px; } .sidebar { padding:30px 19px; } .surface { padding:23px; } .task { grid-template-columns:195px minmax(0,1fr) 22px; gap:20px; } .mapping-head,.mapping-row { grid-template-columns:125px minmax(0,1fr); gap:30px; } .mapping-arrow { right:-23px; } }
@@ -169,7 +176,7 @@
     <h1 id="homeTitle" tabindex="-1">今天要處理哪件事？</h1>
     <p class="home-intro">三項功能都能單獨使用，選一項就可以開始。</p>
     <div class="task-list">
-      <button class="task" type="button" data-mode="department"><span><strong>系所比對</strong><span class="purpose">找出適合各系所的書</span></span><span class="requirements">準備　<b>出版社書單 ＋ 系所清單或關鍵字表</b><br>得到　附有對應系所的 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      <button class="task" type="button" data-mode="department"><span><strong>系所比對</strong><span class="purpose">找出適合各系所的書</span></span><span class="requirements">準備　<b>出版社書單 ＋ 學校名稱</b><br>得到　附有對應系所的 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
       <button class="task" type="button" data-mode="purchase"><span><strong>購買查重</strong><span class="purpose">檢查哪些書已經買過</span></span><span class="requirements">準備　<b>出版社書單 ＋ 已購買書單</b><br>得到　標記購買狀態的 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
       <button class="task" type="button" data-mode="upload"><span><strong>格式轉換</strong><span class="purpose">整理成系統可上傳的檔案</span></span><span class="requirements">準備　<b>出版社書單</b><br>得到　系統上傳格式 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
     </div>
@@ -204,13 +211,13 @@
         </section>
         <section data-page="department" hidden>
           <section id="departmentSection">
-            <div id="aiPurpose" class="ai-purpose"><h3>AI 幫你把系所名稱整理成關鍵字</h3><div class="keyword-example"><span>財務金融學系</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>金融、投資、finance</span></div><p>例如書名含有 finance，就可能對應到財務金融學系。</p></div>
+            <div id="aiPurpose" class="ai-purpose"><h3>讓 AI 自動查找學校系所並整理關鍵字</h3><div class="keyword-example"><span>學校名稱</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>官網系所 ＋ 中英文關鍵字</span></div><p>填寫學校名稱，再把指令貼到可連網的 AI。</p></div>
             <div id="aiShortcut" class="ai-shortcut"><button type="button" class="text-button" data-action="existing-csv">已有關鍵字表？直接貼上或匯入 CSV<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
-            <div class="surface"><ol id="aiProgress" class="ai-progress"><li>1 貼上系所名稱</li><li>2 請 AI 產生關鍵字</li><li>3 貼回關鍵字表</li></ol>
+            <div class="surface"><ol id="aiProgress" class="ai-progress"><li>1 填寫學校名稱</li><li>2 請 AI 查找系所</li><li>3 貼回關鍵字表</li></ol>
               <div id="aiSchoolField" class="field"><label for="schoolName">學校名稱</label><input id="schoolName" type="text" placeholder="例如：淡江大學" autocomplete="off"></div>
-              <section data-ai-page="0"><div class="field"><label for="sourceDepartmentText">系所名稱清單</label><textarea id="sourceDepartmentText" placeholder="從學校網站複製系所清單，貼在這裡。"></textarea></div><div class="inline-actions"><button id="copyPromptButton" class="btn primary" type="button">複製給 AI 的指令<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
-              <section data-ai-page="1" hidden><div class="ai-subheading"><h2>到 AI 產生各系所的關鍵字</h2><span class="location-tag">在 AI 工具操作</span></div><ol class="ai-instructions"><li>開啟你使用的 AI 聊天視窗。</li><li><strong>貼上剛才複製的指令並送出。</strong></li><li>AI 回覆後，<strong>複製整段關鍵字表</strong>，包含第一列欄名。</li></ol><div class="expected-result">AI 回覆範例<pre>學校名稱,系所名稱,關鍵字
-淡江大學,財務金融學系,金融;投資;finance</pre></div><div class="inline-actions"><button class="btn primary" type="button" data-action="return-csv">已複製結果，回來貼上</button><button class="text-button" type="button" data-action="copy-again">重新複製指令</button></div><button class="text-button" type="button" data-action="edit-departments">返回修改系所名稱</button><div id="promptFallback" class="field" hidden><label for="manualPrompt">請手動複製完整指令</label><textarea id="manualPrompt" readonly></textarea></div></section>
+              <section data-ai-page="0"><div class="inline-actions"><button id="copyPromptButton" class="btn primary" type="button">下一步<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
+              <section data-ai-page="1" hidden><div class="ai-subheading"><h2>讓 AI 查找系所並產生關鍵字</h2><span class="location-tag">在 AI 工具操作</span></div><ol class="ai-instructions"><li>開啟可連網的 AI 聊天視窗。</li><li><strong>貼上已複製的指令並送出。</strong>AI 會到學校官網查找系所，再整理關鍵字。</li><li>AI 回覆後，<strong>複製整段關鍵字表</strong>，包含第一列欄名。</li></ol><div class="expected-result">AI 回覆範例<pre>學校名稱,系所名稱,關鍵字
+淡江大學,財務金融學系,金融;投資;finance</pre></div><div class="inline-actions"><button class="btn primary" type="button" data-action="return-csv">已複製結果，回來貼上</button><button class="text-button" type="button" data-action="copy-again">重新複製指令</button></div><button class="text-button" type="button" data-action="edit-departments">返回修改學校名稱</button></section>
               <section data-ai-page="2" hidden><div class="field"><label for="keywordText">系所關鍵字表（CSV 格式）</label><textarea id="keywordText" placeholder="學校名稱,系所名稱,關鍵字&#10;淡江大學,財務金融學系,金融;投資;finance"></textarea></div><input id="keywordFile" type="file" accept=".csv,.txt" hidden aria-label="系所關鍵字 CSV"><div class="inline-actions"><button class="btn" type="button" data-action="check-csv">檢查關鍵字表</button><button class="text-button" type="button" data-file="keywordFile">匯入 CSV 檔</button><button class="text-button" type="button" data-action="edit-departments">重新用 AI 整理</button></div><div id="csvFeedback" aria-live="polite"></div><details class="privacy-detail"><summary>查看關鍵字表格式</summary><pre>學校名稱,系所名稱,關鍵字
 淡江大學,財務金融學系,金融;投資;finance</pre></details></section>
             </div>
@@ -222,14 +229,21 @@
         <section data-page="complete" hidden><div class="surface"><section id="result" hidden><div id="resultGrid" class="result-grid"><div class="stat"><strong id="totalCount">0</strong><span>總筆數</span></div><div id="purchasedStat" class="stat"><strong id="purchasedCount">0</strong><span>已購買</span></div><div id="notPurchasedStat" class="stat"><strong id="notPurchasedCount">0</strong><span>未購買</span></div><div id="departmentStat" class="stat"><strong id="departmentCount">0</strong><span>命中系所</span></div></div></section><div class="download-row"><a id="downloadOutput" class="button-link" href="#" download="書單_比對結果.xlsx" hidden>下載比對結果 Excel</a><a id="downloadUpload" class="button-link" href="#" download="系統上傳格式.xlsx" hidden>下載系統上傳格式 Excel</a></div></div></section>
         <div class="wizard-footer"><button id="backButton" class="btn" type="button" data-action="back">上一步</button><button id="nextButton" class="btn primary" type="button" data-action="next">下一步<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button id="submitButton" class="btn primary" type="submit" hidden>產生 Excel</button><button id="newTaskButton" class="btn primary" type="button" data-action="home" hidden>選擇其他功能</button></div>
       </form>
-      <details class="privacy-detail"><summary>資料處理方式</summary><p>Excel 與 CSV 在瀏覽器本機處理。AI 指令包含你填寫的學校與系所資料，需自行複製到 AI 工具。重新整理會清除本次操作。</p></details>
+      <details class="privacy-detail"><summary>資料處理方式</summary><p>Excel 與 CSV 在瀏覽器本機處理。AI 指令包含學校名稱，需自行貼到可連網的 AI，由 AI 查找官方系所資料。重新整理會清除本次操作。</p></details>
       <div hidden aria-hidden="true"><div id="sourceStatus"><small></small></div><div id="mappingStatus"><small></small></div><div id="purchasedStatus"><small></small></div></div>
     </main>
   </div>
+  <dialog id="copyPromptDialog" class="copy-dialog" aria-labelledby="copyPromptTitle" aria-describedby="copyPromptDescription">
+    <div class="copy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4h10v13H9zM5 8v12h10"/></svg></div>
+    <h2 id="copyPromptTitle">AI 指令已複製</h2>
+    <p id="copyPromptDescription"></p>
+    <div id="copyPromptManualField" class="field" hidden><label for="copyPromptManual">完整 AI 指令</label><textarea id="copyPromptManual" readonly></textarea></div>
+    <button id="copyPromptConfirm" class="btn primary" type="button" autofocus>我知道了</button>
+  </dialog>
   <script>
     const SOURCE_FIELDS = [
       { key: "title", label: "title：書名", required: true, help: "系所比對與系統上傳時必填。" },
-      { key: "subject_main", label: "subject_main：主題", required: false, help: "建議設定。用於判斷主要學科領域。" },
+      { key: "subject_main", label: "subject_main：主題", required: true, help: "系所比對與系統上傳時必填。用於判斷主要學科領域。" },
       { key: "subject_sub", label: "subject_sub：子主題", required: false, help: "建議設定。用於辨識細分學科方向。" },
       { key: "description", label: "description：內容簡介", required: false, help: "書名或主題資訊不足時，補充比對依據。" },
       { key: "toc", label: "toc：目次", required: false, help: "以章節標題補充主題線索。" },
@@ -323,7 +337,6 @@
       sdgs: document.querySelector("#sdgs"),
       sdgsManualField: document.querySelector("#sdgsManualField"),
       sdgModeDescription: document.querySelector("#sdgModeDescription"),
-      sourceDepartmentText: document.querySelector("#sourceDepartmentText"),
       copyPromptButton: document.querySelector("#copyPromptButton"),
       keywordText: document.querySelector("#keywordText"),
       keywordFile: document.querySelector("#keywordFile"),
@@ -350,7 +363,7 @@
     };
 
     // UI state stays in memory; the existing workbook and matching functions remain authoritative.
-    const ui = { mode: null, step: "files", aiStep: 0, csvStamp: "", busy: false, loading: new Set() };
+    const ui = { mode: null, step: "files", aiStep: 0, csvStamp: "", busy: false, copying: false, loading: new Set() };
     const uiModes = {
       department: { name: "系所比對", steps: ["files", "mapping", "department", "review"] },
       purchase: { name: "購買查重", steps: ["files", "mapping", "review"] },
@@ -377,6 +390,7 @@
       }
       if (step === "mapping") {
         if ((flags.includeDepartment || flags.includeUpload) && sourceMap.title == null) return issue("請選擇出版社書單中放書名的欄位。", '[data-source-field="title"]');
+        if ((flags.includeDepartment || flags.includeUpload) && sourceMap.subject_main == null) return issue("請選擇出版社書單中放主題的欄位。", '[data-source-field="subject_main"]');
         if (flags.includePurchase && sourceMap.source_purchase_key == null) return issue("請選擇出版社書單的 ISBN／查重欄位。", '[data-source-field="source_purchase_key"]');
         if (flags.includePurchase && purchasedMap.purchased_key == null) return issue("請選擇已購買書單的 ISBN／查重欄位。", '[data-purchased-field="purchased_key"]');
       }
@@ -554,16 +568,34 @@
     }
 
     async function prepareAiPrompt() {
+      if (ui.copying) return;
       clearUiErrors();
       if (!cleanText(els.schoolName.value)) { showStepIssue({ message: "請填寫學校名稱。", selector: "#schoolName" }); return; }
-      if (!cleanText(els.sourceDepartmentText.value)) { showStepIssue({ message: "請貼上系所名稱清單。", selector: "#sourceDepartmentText" }); return; }
+      const mode = ui.mode;
+      const school = cleanText(els.schoolName.value);
       const prompt = buildAiPrompt();
+      ui.copying = true;
+      els.copyPromptButton.disabled = true;
+      els.copyPromptButton.setAttribute("aria-busy", "true");
       let copied = false;
-      try { await copyText(prompt); copied = true; } catch (_) { /* A visible manual copy field is the fallback. */ }
+      try { await copyText(prompt); copied = true; } catch (_) { /* Offer manual copying without claiming clipboard success. */ }
+      finally {
+        ui.copying = false;
+        els.copyPromptButton.disabled = false;
+        els.copyPromptButton.removeAttribute("aria-busy");
+      }
+      if (ui.mode !== mode || ui.step !== "department" || cleanText(els.schoolName.value) !== school) return;
       setAiPage(1);
-      byId("promptFallback").hidden = copied;
-      if (!copied) { byId("manualPrompt").value = prompt; byId("manualPrompt").focus(); byId("manualPrompt").select(); }
-      else byId("aiProgress").scrollIntoView({ block: "nearest" });
+      byId("copyPromptTitle").textContent = copied ? "AI 指令已複製" : "請手動複製 AI 指令";
+      byId("copyPromptDescription").textContent = copied
+        ? `接下來把指令貼到可連網的 AI，讓它查找「${school}」的系所並整理關鍵字。`
+        : "瀏覽器未允許自動複製。請選取下方完整指令並手動複製，再繼續。";
+      byId("copyPromptManualField").hidden = copied;
+      byId("copyPromptManual").value = copied ? "" : prompt;
+      byId("copyPromptConfirm").textContent = copied ? "我知道了" : "已手動複製，繼續";
+      byId("copyPromptDialog").showModal();
+      if (copied) byId("copyPromptConfirm").focus();
+      else { byId("copyPromptManual").focus(); byId("copyPromptManual").select(); }
     }
 
     function checkKeywordTable() {
@@ -595,6 +627,7 @@
       const rows = [["本次功能", uiModes[ui.mode].name], ["出版社書單", `${escapeHtml(els.sourceFile.files[0]?.name || "")}<span>${escapeHtml(els.sourceSheet.value)} · ${state.sourceData?.rows.length || 0} 筆</span>`]];
       const mappings = [];
       if (flags.includeDepartment || flags.includeUpload) mappings.push(`書名 ← ${escapeHtml(state.sourceData?.headers[sourceMap.title] || "")}`);
+      if (flags.includeDepartment || flags.includeUpload) mappings.push(`主題 ← ${escapeHtml(state.sourceData?.headers[sourceMap.subject_main] || "")}`);
       if (flags.includePurchase) mappings.push(`ISBN ← ${escapeHtml(state.sourceData?.headers[sourceMap.source_purchase_key] || "")}`);
       rows.push(["欄位對應", mappings.join("<br>")]);
       if (flags.includePurchase) rows.push(["已購買書單", `${escapeHtml(els.purchasedFile.files[0]?.name || "")}<span>${escapeHtml(els.purchasedSheet.value)} · ${state.purchasedData?.rows.length || 0} 筆</span>`]);
@@ -653,6 +686,7 @@
     }
 
     function readUiRoute() {
+      if (byId("copyPromptDialog").open) { setRoute(true); return; }
       if (ui.busy || ui.loading.size) { setRoute(true); return; }
       const [mode, requestedStep] = location.hash.slice(1).split("/");
       if (!uiModes[mode]) { ui.mode = null; clearUiErrors(); syncInterface(); return; }
@@ -688,11 +722,16 @@
       if (ui.busy) return;
       clearOutputs();
       clearUiErrors();
-      if ([els.schoolName, els.keywordText, els.sourceDepartmentText].includes(event.target)) {
+      if ([els.schoolName, els.keywordText].includes(event.target)) {
         ui.csvStamp = "";
         byId("csvFeedback").innerHTML = "";
       }
       syncInterface();
+    });
+    byId("copyPromptDialog").addEventListener("cancel", (event) => event.preventDefault());
+    byId("copyPromptConfirm").addEventListener("click", () => {
+      byId("copyPromptDialog").close();
+      byId("stageTitle").focus({ preventScroll: true });
     });
     window.addEventListener("popstate", readUiRoute);
     window.addEventListener("hashchange", readUiRoute);
@@ -957,7 +996,7 @@
         const key = label.getAttribute("data-mapping-key");
         const type = label.getAttribute("data-mapping-type");
         const required = (
-          (type === "source-field" && key === "title" && (flags.includeDepartment || flags.includeUpload)) ||
+          (type === "source-field" && ["title", "subject_main"].includes(key) && (flags.includeDepartment || flags.includeUpload)) ||
           (type === "source-field" && key === "source_purchase_key" && flags.includePurchase) ||
           (type === "purchased-field" && key === "purchased_key" && flags.includePurchase)
         );
@@ -1121,6 +1160,9 @@
     }
 
     function validateSourceMap(map, flags) {
+      if ((flags.includeDepartment || flags.includeUpload) && map.subject_main == null) {
+        throw new Error("請選擇出版社書單中放主題的欄位。");
+      }
       if (flags.includeDepartment && map.title === null) {
         throw new Error("請選擇出版社書單中放書名的欄位。");
       }
@@ -1136,6 +1178,7 @@
 
     function validateUploadMap(map) {
       if (map.title === null) throw new Error("請選擇出版社書單中放書名的欄位。");
+      if (map.subject_main == null) throw new Error("請選擇出版社書單中放主題的欄位。");
     }
 
     function updateInterfaceStatus() {
@@ -1149,16 +1192,19 @@
 
       const titleSelect = document.querySelector('select[data-source-field="title"]');
       const titleReady = Boolean(state.sourceData && titleSelect && titleSelect.value !== "");
+      const subjectSelect = document.querySelector('select[data-source-field="subject_main"]');
+      const subjectReady = Boolean(state.sourceData && subjectSelect && subjectSelect.value !== "");
       const sourceKeySelect = document.querySelector('select[data-source-field="source_purchase_key"]');
       const sourceKeyReady = Boolean(state.sourceData && sourceKeySelect && sourceKeySelect.value !== "");
       const purchasedKeySelect = document.querySelector('select[data-purchased-field="purchased_key"]');
       const purchasedKeyReady = Boolean(state.purchasedData && purchasedKeySelect && purchasedKeySelect.value !== "");
       const requiredFieldsReady = (
-        (!(flags.includeDepartment || flags.includeUpload) || titleReady) &&
+        (!(flags.includeDepartment || flags.includeUpload) || (titleReady && subjectReady)) &&
         (!flags.includePurchase || (sourceKeyReady && purchasedKeyReady))
       );
       const missingFields = [];
       if ((flags.includeDepartment || flags.includeUpload) && !titleReady) missingFields.push("書名");
+      if ((flags.includeDepartment || flags.includeUpload) && !subjectReady) missingFields.push("主題");
       if (flags.includePurchase && !sourceKeyReady) missingFields.push("出版社查重欄位");
       if (flags.includePurchase && !purchasedKeyReady) missingFields.push("已購買查重欄位");
       setStatusRow(
@@ -1177,6 +1223,7 @@
       const missing = [];
       if (!state.sourceData) missing.push("出版社書單");
       if (state.sourceData && !titleReady) missing.push("書名欄位");
+      if (state.sourceData && !subjectReady) missing.push("主題欄位");
       if (!cleanText(els.schoolCode.value)) missing.push("學校代碼");
 
       const subjectCode = cleanText(els.subjectCode.value).toUpperCase();
@@ -1601,29 +1648,30 @@
 
     function buildAiPrompt() {
       const schoolName = cleanText(els.schoolName.value) || "【請填入學校名稱】";
-      const description = cleanText(els.sourceDepartmentText.value) || "【請貼上學院、系所清單或自然語言描述】";
-      return `你是一位圖書館電子書選書與學科分類助理。請把我提供的學校系所描述，整理成可貼回書單比對工具的 CSV，並同時為每個系所產生適合出版社書目比對的關鍵字。
+      return `你是一位圖書館電子書選書與學科分類助理。請使用網路搜尋，自行查找下列學校目前的正式系所，並為每個系所整理適合出版社書目比對的中英文關鍵字。使用者只提供學校名稱，不會提供系所清單。
 
-重要：請只輸出 CSV，不要 Markdown，不要程式碼區塊，不要任何說明文字。
+學校名稱：${schoolName}
+
+查找與查證規則：
+1. 優先查閱該校官方網站的學術單位、學院、系所與招生頁面，逐一核對目前仍存在的教學單位。
+2. 涵蓋正式學系、獨立研究所與學位學程；以校方最新可查證資料為準。跨頁查找後合併去重，不要只列幾個範例。
+3. 使用官方完整名稱；不要憑記憶補系所、推測不存在的單位，或把行政單位、一般研究中心當成系所。
+4. 不要加入其他學校的系所，不要合併不同系所，不要重複列出同一單位。
+5. 如果無法連網、無法確認是哪所學校，或找不到可查證的官方系所資料，請直接說明無法完成的原因，不要編造 CSV。
+
+成功查證後，只輸出以下三欄 CSV 純文字，不要 Markdown、程式碼區塊或額外說明，也不要在 CSV 內放來源網址或引用標記。
 
 CSV 輸出規則：
 1. 第一列固定為：學校名稱,系所名稱,關鍵字
 2. 每一列只放一個系所。
 3. 學校名稱必須完全使用：${schoolName}
-4. 系所名稱請使用完整正式名稱；如果我只給簡稱，請合理補成正式系所名稱。
+4. 系所名稱必須是已從官方資料查證的完整正式名稱。
 5. 關鍵字用半形分號 ; 分隔，不要用逗號分隔關鍵字。
 6. 每個系所至少產生 12 個關鍵字。
 7. 關鍵字要包含中文與英文。
 8. 英文關鍵字要包含學科正式名稱、常見書名詞、研究主題詞，以及出版社書目標題、摘要或主題分類可能出現的詞。
 9. 避免太廣泛的單詞，例如 research、introduction、theory、practice、management 不要單獨列入，除非和具體領域組成片語。
-10. 不要加入其他學校的系所。
-11. 不要合併不同系所。
-
-學校名稱：
-${schoolName}
-
-系所/學院描述：
-${description}
+10. 欄位文字若含逗號或雙引號，請依 CSV 規則以雙引號包住，並把內部雙引號寫成兩個雙引號。每筆資料維持一行。
 
 請直接輸出 CSV。`;
     }

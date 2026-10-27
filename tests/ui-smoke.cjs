@@ -26,7 +26,7 @@ async function downloadRows(page, selector) {
 (async () => {
   const browser = await chromium.launch({ headless: process.env.HEADLESS === '1', channel: process.env.BROWSER_CHANNEL || 'chrome' });
   try {
-    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true, permissions: ['clipboard-read', 'clipboard-write'] });
     if (libraryPath) {
       await context.route('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', (route) => route.fulfill({ path: libraryPath, contentType: 'application/javascript' }));
     }
@@ -66,16 +66,56 @@ async function downloadRows(page, selector) {
         await page.locator('[data-purchased-field="purchased_key"]').waitFor({ state: 'attached' });
       }
       await page.click('#nextButton');
-      assert.equal(await page.locator('.mapping-row:visible').count(), mode === 'combined' ? 3 : mode === 'purchase' ? 2 : 1);
+      assert.equal(await page.locator('.mapping-row:visible').count(), mode === 'combined' ? 4 : 2);
       if (mode !== 'purchase') {
         await page.selectOption('[data-source-field="title"]', '');
         await page.click('#nextButton');
         assert(await page.locator('[data-source-field="title"]').getAttribute('aria-invalid'));
         await page.selectOption('[data-source-field="title"]', '0');
+        assert(await page.locator('[data-source-field="subject_main"]').evaluate(el => el.required));
+        await page.selectOption('[data-source-field="subject_main"]', '');
+        await page.click('#nextButton');
+        assert(await page.locator('[data-source-field="subject_main"]').getAttribute('aria-invalid'));
+        assert(await page.locator('[data-page="mapping"]').isVisible());
+        await page.selectOption('[data-source-field="subject_main"]', '2');
+      } else {
+        assert.equal(await page.locator('[data-source-field="subject_main"]').evaluate(el => el.required), false);
       }
       await page.click('#nextButton');
       if (['department', 'combined'].includes(mode)) {
-        await page.click('[data-action="existing-csv"]');
+        if (mode === 'department') {
+          assert.equal(await page.locator('#sourceDepartmentText').count(), 0);
+          assert.equal((await page.locator('#copyPromptButton').innerText()).trim(), '下一步');
+          await page.click('#copyPromptButton');
+          assert(await page.locator('#schoolName').getAttribute('aria-invalid'));
+          await page.fill('#schoolName', '測試大學');
+          await page.click('#copyPromptButton');
+          await page.getByRole('heading', { name: 'AI 指令已複製', exact: true }).waitFor();
+          const prompt = await page.evaluate(() => navigator.clipboard.readText());
+          assert(prompt.includes('測試大學') && prompt.includes('官方網站') && prompt.includes('自行查找'));
+          assert(!prompt.includes('Corporate Finance'), 'The AI prompt must not include the uploaded workbook');
+          assert.equal(await page.locator('#copyPromptConfirm').evaluate(el => el === document.activeElement), true);
+          await page.keyboard.press('Escape');
+          assert(await page.locator('#copyPromptDialog').isVisible(), 'Escape must not dismiss the acknowledgement');
+          await page.mouse.click(5, 5);
+          assert(await page.locator('#copyPromptDialog').isVisible(), 'Backdrop click must not dismiss the acknowledgement');
+          await page.click('#copyPromptConfirm');
+          assert(await page.locator('#copyPromptDialog').isHidden());
+          assert(await page.locator('[data-ai-page="1"]').isVisible());
+          // Clipboard failure must offer manual copying and never claim success.
+          await page.evaluate(() => {
+            window.restoreClipboardWrite = navigator.clipboard.writeText.bind(navigator.clipboard);
+            navigator.clipboard.writeText = async () => { throw new Error('Test: clipboard permission denied'); };
+          });
+          await page.click('[data-action="copy-again"]');
+          await page.getByRole('heading', { name: '請手動複製 AI 指令', exact: true }).waitFor();
+          assert((await page.locator('#copyPromptManual').inputValue()).includes('測試大學'));
+          await page.click('#copyPromptConfirm');
+          await page.evaluate(() => { navigator.clipboard.writeText = window.restoreClipboardWrite; delete window.restoreClipboardWrite; });
+          await page.click('[data-action="return-csv"]');
+        } else {
+          await page.click('[data-action="existing-csv"]');
+        }
         await page.fill('#schoolName', '測試大學');
         await page.fill('#keywordText', 'bad data');
         await page.click('[data-action="check-csv"]');
