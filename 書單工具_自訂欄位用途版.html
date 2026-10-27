@@ -3,816 +3,229 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>書單比對與格式轉換｜自訂欄位用途版</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    :root {
-      --bg: #f1f4f5;
-      --panel: #ffffff;
-      --text: #152128;
-      --muted: #63717a;
-      --line: #d8e0e3;
-      --line-strong: #c1cdd2;
-      --soft: #f7f9f9;
-      --accent: #078779;
-      --accent-dark: #056c62;
-      --navy: #17313d;
-      --navy-soft: #244854;
-      --blue-soft: #f0f6f6;
-      --danger: #b42318;
-      --danger-bg: #fff1f0;
-      --ok-bg: #ecfdf3;
-      --ok-text: #067647;
-      --warning-bg: #fff8e7;
-      --warning-text: #8a5a00;
-      --shadow-sm: 0 1px 2px rgb(21 33 40 / 5%);
-      --shadow-md: 0 16px 40px rgb(25 45 54 / 8%);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "SF Pro Text", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
-      font-feature-settings: "tnum" 1;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    main {
-      width: min(1260px, calc(100% - 40px));
-      margin: 28px auto 56px;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 28px;
-      padding: 26px 28px;
-      border: 1px solid #294754;
-      border-radius: 8px;
-      margin-bottom: 22px;
-      background: var(--navy);
-      box-shadow: 0 18px 44px rgb(20 42 51 / 15%);
-    }
-
-    h1 {
-      margin: 0;
-      color: #f8fbfc;
-      font-size: 27px;
-      font-weight: 760;
-      letter-spacing: 0;
-    }
-
-    h2, h3 {
-      margin: 0;
-      letter-spacing: 0;
-    }
-
-    h2 { font-size: 20px; font-weight: 760; }
-    h3 { font-size: 16px; font-weight: 760; }
-
-    .eyebrow {
-      margin: 0 0 8px;
-      color: #63d3c4;
-      font-size: 12px;
-      font-weight: 750;
-    }
-
-    .header-note {
-      max-width: 430px;
-      margin: 4px 0 0;
-      color: #c7d4d9;
-      line-height: 1.55;
-      text-align: right;
-      font-size: 13px;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 292px;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid #d3dcdf;
-      border-radius: 8px;
-      padding: 28px;
-      box-shadow: var(--shadow-md);
-    }
-
-    .section-title {
-      display: flex;
-      align-items: flex-start;
-      gap: 13px;
-      margin-bottom: 22px;
-    }
-
-    .section-heading { display: grid; gap: 5px; }
-
-    .section-title p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 13px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px 22px;
-    }
-
-    label {
-      display: grid;
-      gap: 8px;
-      color: #22313a;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .wide { grid-column: 1 / -1; }
-
-    input, select, textarea {
-      width: 100%;
-      min-height: 44px;
-      border: 1px solid #ccd7db;
-      border-radius: 6px;
-      padding: 10px 12px;
-      background: #fff;
-      color: var(--text);
-      font: inherit;
-      box-shadow: inset 0 1px 1px rgb(27 46 54 / 3%), var(--shadow-sm);
-      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
-    }
-
-    input:hover, select:hover, textarea:hover { border-color: #aebec4; }
-
-    input:disabled, select:disabled, textarea:disabled {
-      color: #8b969c;
-      background: #f3f5f6;
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    input[type="file"] { padding: 6px; }
-
-    input[type="file"]::file-selector-button {
-      min-height: 32px;
-      margin-right: 10px;
-      border: 1px solid #b8c7cc;
-      border-radius: 5px;
-      padding: 0 12px;
-      background: #f5f8f8;
-      color: #263a44;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    input[type="file"]::file-selector-button:hover { background: #eaf1f2; }
-
-    textarea {
-      min-height: 150px;
-      resize: vertical;
-      line-height: 1.5;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgb(7 135 121 / 14%), var(--shadow-sm);
-    }
-
-    small {
-      color: var(--muted);
-      font-size: 12.5px;
-      font-weight: 400;
-      line-height: 1.5;
-    }
-
-    button, .button-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      border: 1px solid var(--accent);
-      border-radius: 6px;
-      padding: 0 18px;
-      background: var(--accent);
-      color: #fff;
-      font: inherit;
-      font-weight: 750;
-      text-decoration: none;
-      cursor: pointer;
-      box-shadow: 0 7px 16px rgb(7 135 121 / 18%);
-      transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
-    }
-
-    button:hover, .button-link:hover {
-      border-color: var(--accent-dark);
-      background: var(--accent-dark);
-      box-shadow: 0 9px 20px rgb(5 108 98 / 20%);
-    }
-
-    button:active, .button-link:active { transform: translateY(1px); }
-    button:disabled { opacity: .58; cursor: not-allowed; box-shadow: none; transform: none; }
-
-    .secondary {
-      background: #e6f2f0;
-      color: var(--accent-dark);
-      border: 1px solid #b7d8d3;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .secondary:hover { background: #d7ebe7; }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 20px;
-      align-items: center;
-    }
-
-    .processing-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      min-height: 44px;
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .processing-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #b9d8d3;
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: processing-spin 700ms linear infinite;
-    }
-
-    @keyframes processing-spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .processing-spinner { animation-duration: 1400ms; }
-    }
-
-    .message {
-      margin-top: 16px;
-      border-radius: 6px;
-      border: 1px solid #b7dfca;
-      border-left: 4px solid var(--ok-text);
-      padding: 12px 14px;
-      background: var(--ok-bg);
-      color: var(--ok-text);
-      line-height: 1.6;
-      font-weight: 700;
-    }
-
-    .message.error {
-      background: var(--danger-bg);
-      color: var(--danger);
-      border-color: #f0b9b5;
-      border-left-color: var(--danger);
-    }
-
-    .mapping-section {
-      margin-top: 32px;
-      padding-top: 28px;
-      border-top: 1px solid var(--line);
-    }
-
-    .mapping-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px 16px;
-      margin-top: 18px;
-    }
-
-    .mapping-grid label {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--soft);
-      box-shadow: var(--shadow-sm);
-      transition: border-color 140ms ease, background-color 140ms ease;
-    }
-
-    .mapping-grid label:hover {
-      border-color: #b9c8cd;
-      background: #fbfcfc;
-    }
-
-    .mapping-intro {
-      display: block;
-      max-width: 850px;
-      margin-top: 7px;
-    }
-
-    .mode-section {
-      margin-bottom: 28px;
-      padding-bottom: 28px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .mode-section h2 { margin-bottom: 6px; }
-
-    .mode-section > p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .segmented-control {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 4px;
-      margin-top: 16px;
-      padding: 4px;
-      border: 1px solid #ccd7db;
-      border-radius: 8px;
-      background: #eef2f3;
-      box-shadow: inset 0 1px 2px rgb(27 46 54 / 5%);
-    }
-
-    .segmented-control label {
-      position: relative;
-      display: block;
-      cursor: pointer;
-    }
-
-    .segmented-control input {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-      margin: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .segmented-control span {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 40px;
-      border: 1px solid transparent;
-      border-radius: 5px;
-      color: #53636c;
-      font-size: 14px;
-      font-weight: 700;
-      transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
-    }
-
-    .segmented-control input:checked + span {
-      border-color: #b9c8cd;
-      background: #fff;
-      color: var(--navy);
-      box-shadow: 0 2px 7px rgb(25 45 54 / 9%);
-    }
-
-    .segmented-control input:focus-visible + span {
-      outline: 3px solid rgb(7 135 121 / 14%);
-    }
-
-    .segmented-control.compact {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      width: min(100%, 420px);
-      margin-top: 0;
-    }
-
-    .sdg-settings {
-      display: grid;
-      gap: 10px;
-      padding-top: 2px;
-    }
-
-    .sdg-settings > span {
-      color: #22313a;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .mode-description {
-      display: block;
-      margin-top: 10px;
-      color: var(--accent-dark);
-      font-weight: 650;
-    }
-
-    .required-mark {
-      color: var(--danger);
-      font-weight: 800;
-    }
-
-    .result-grid {
-      display: grid;
-      grid-template-columns: repeat(var(--stat-columns, 4), minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .stat {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      background: var(--soft);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .stat strong {
-      display: block;
-      color: var(--navy);
-      font-size: 25px;
-      margin-bottom: 4px;
-    }
-
-    .stat span {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .side-panel {
-      position: sticky;
-      top: 20px;
-      display: grid;
-      gap: 16px;
-    }
-
-    .side-panel .panel {
-      padding: 20px;
-      box-shadow: 0 10px 28px rgb(25 45 54 / 6%);
-    }
-
-    .side-panel h2 {
-      color: #29434f;
-      font-size: 15px;
-    }
-
-    .status-list {
-      display: grid;
-      gap: 0;
-      margin-top: 12px;
-    }
-
-    .status-row {
-      display: grid;
-      grid-template-columns: 10px 1fr;
-      gap: 10px;
-      align-items: start;
-      padding: 11px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      margin-top: 5px;
-      border-radius: 50%;
-      background: #a8b3b9;
-      box-shadow: 0 0 0 3px #eef1f2;
-    }
-
-    .status-row.ready .status-dot {
-      background: var(--accent);
-      box-shadow: 0 0 0 3px rgb(7 135 121 / 13%);
-    }
-    .status-row strong { display: block; font-size: 14px; }
-    .status-row small { display: block; margin-top: 2px; }
-
-    .plain-list {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 13px;
-    }
-
-    .sample {
-      margin: 10px 0 0;
-      padding: 12px;
-      white-space: pre-wrap;
-      overflow-x: auto;
-      background: #111827;
-      color: #e5e7eb;
-      border-radius: 6px;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .note {
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ead8bd;
-      background: #fffaf1;
-      color: #7d5424;
-      line-height: 1.6;
-      font-size: 13px;
-      font-weight: 650;
-    }
-
-    .upload-module {
-      margin: 36px -28px 0;
-      padding: 30px 28px 28px;
-      border-top: 1px solid #b9d0d8;
-      border-bottom: 1px solid #b9d0d8;
-      background: var(--blue-soft);
-      border-radius: 0;
-    }
-
-    .readiness {
-      display: grid;
-      grid-template-columns: 12px 1fr;
-      gap: 10px;
-      align-items: start;
-      margin: 4px 0 18px;
-      padding: 13px 14px;
-      border: 1px solid #ead59f;
-      border-radius: 6px;
-      background: var(--warning-bg);
-      color: var(--warning-text);
-      line-height: 1.5;
-      font-size: 14px;
-      font-weight: 650;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .readiness::before {
-      content: "";
-      width: 9px;
-      height: 9px;
-      margin-top: 5px;
-      border-radius: 50%;
-      background: #d18b00;
-    }
-
-    .readiness.ready {
-      border-color: #a9d7c1;
-      background: var(--ok-bg);
-      color: var(--ok-text);
-    }
-
-    .readiness.ready::before { background: var(--ok-text); }
-
-    .field-note {
-      display: block;
-      padding-left: 10px;
-      border-left: 3px solid #9cbac5;
-    }
-
-    [hidden] { display: none !important; }
-
-    @media (max-width: 900px) {
-      header, .layout { display: block; }
-      .header-note { max-width: none; margin-top: 10px; text-align: left; }
-      .side-panel { position: static; margin-top: 18px; }
-      .form-grid, .mapping-grid, .result-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 560px) {
-      main { width: min(100% - 24px, 1260px); margin: 12px auto 32px; }
-      header { padding: 20px; margin-bottom: 14px; }
-      h1 { font-size: 23px; }
-      .panel { padding: 20px; }
-      .upload-module { margin: 32px -20px 0; padding: 24px 20px 20px; }
-      .actions > button, .actions > .button-link { width: 100%; }
-      .segmented-control { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
+    :root { --bg:#f4f4f4; --panel:#fff; --text:#292929; --muted:#666; --line:#e1e1e1; --control:#8a8a8a; --soft:#f6f6f6; --accent:#363636; --accent-dark:#202020; --danger:#a63232; --danger-bg:#fff3f3; --ok-bg:#f0f5f1; --ok-text:#326044; --radius:10px; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:16px/1.6 "PingFang TC","Microsoft JhengHei",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    button,input,select,textarea { font:inherit; }
+    button,a,summary { -webkit-tap-highlight-color:transparent; }
+    button,summary { cursor:pointer; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:28px; line-height:1.4; font-weight:650; letter-spacing:-.02em; }
+    h2 { font-size:18px; font-weight:600; } h3 { font-size:16px; font-weight:600; }
+    svg { width:20px; height:20px; flex:none; }
+    button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid #858585; outline-offset:3px; }
+    ::selection { background:#dedede; }
+    button,a,summary { touch-action:manipulation; }
+    [hidden] { display:none!important; }
+    .skip { position:absolute; left:16px; top:-100px; padding:10px; z-index:20; background:white; color:var(--text); }
+    .skip:focus { top:8px; }
+    .topbar { height:76px; display:flex; align-items:center; justify-content:space-between; gap:18px; padding:0 32px; background:var(--panel); border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:12px; border:0; padding:0; background:none; color:var(--text); font-size:19px; font-weight:650; min-height:44px; }
+    .brand-mark { width:34px; height:34px; display:grid; place-items:center; background:var(--accent); color:white; border-radius:7px; }
+    .topbar .text-button { font-size:14px; }
+    .btn,.button-link { display:inline-flex; justify-content:center; align-items:center; gap:10px; min-height:46px; padding:10px 18px; background:var(--panel); color:var(--text); border:1px solid #ccc; border-radius:7px; font-size:14px; font-weight:550; line-height:1.5; text-decoration:none; transition:background-color 160ms ease,border-color 160ms ease; }
+    .btn:hover,.button-link:hover { background:#eee; border-color:#999; }
+    .btn.primary,.button-link { background:var(--accent); color:white; border-color:var(--accent); }
+    .btn.primary:hover,.button-link:hover { background:var(--accent-dark); }
+    button:disabled { cursor:not-allowed; opacity:.48; }
+    .text-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:44px; border:0; background:none; padding:7px 0; color:#4b4b4b; font-size:14px; }
+    .text-button:hover { color:#111; text-decoration:underline; text-underline-offset:4px; }
+    .text-button svg,.btn svg { width:18px; height:18px; }
+    .home { width:min(960px,calc(100% - 48px)); margin:55px auto 40px; }
+    .home-intro { margin-top:10px; color:var(--muted); font-size:15px; }
+    .task-list { margin-top:32px; overflow:hidden; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); }
+    .task { display:grid; grid-template-columns:220px minmax(0,1fr) 24px; align-items:center; gap:26px; width:100%; border:0; border-bottom:1px solid var(--line); background:var(--panel); padding:26px 28px; text-align:left; color:var(--text); transition:background-color 160ms ease; }
+    .task:last-child { border-bottom:0; } .task:hover { background:#f7f7f7; }
+    .task strong { display:block; font-size:19px; font-weight:600; }
+    .task .purpose { display:block; font-size:14px; color:var(--muted); margin-top:4px; }
+    .task .requirements { font-size:14px; color:var(--muted); line-height:1.9; }
+    .task .requirements b { font-weight:500; color:var(--text); }
+    .combined-entry { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:22px 26px; margin-top:20px; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); }
+    .combined-entry p { margin-top:4px; color:var(--muted); font-size:14px; }
+    .home-footer { margin-top:24px; color:var(--muted); font-size:13px; }
+    .workspace { display:grid; grid-template-columns:224px minmax(0,1fr); min-height:calc(100vh - 76px); }
+    .sidebar { padding:37px 24px; background:var(--panel); border-right:1px solid var(--line); min-width:0; }
+    .mode-name { font-size:17px; font-weight:600; margin-bottom:24px; }
+    .steps { list-style:none; padding:0; margin:0; }
+    .steps li { position:relative; padding-bottom:14px; }
+    .steps li:not(:last-child)::after { content:""; position:absolute; width:1px; left:13px; top:35px; bottom:-9px; background:var(--line); }
+    .step-button { position:relative; z-index:1; display:flex; align-items:center; gap:10px; width:100%; min-height:44px; border:0; padding:0; text-align:left; background:none; color:var(--muted); font-size:14px; line-height:1.45; }
+    .step-button:disabled { opacity:1; }
+    .step-number { flex:none; display:grid; place-items:center; width:27px; height:27px; border:1px solid #ccc; border-radius:50%; background:var(--panel); font-size:12px; font-variant-numeric:tabular-nums; }
+    .step-number svg { width:15px; height:15px; }
+    .step-button.current { font-weight:600; color:var(--text); }
+    .step-button.current .step-number { background:var(--accent); color:white; border-color:var(--accent); }
+    .step-button.done .step-number { background:#eee; border-color:#eee; color:#474747; }
+    .stage { min-width:0; width:100%; max-width:1120px; padding:40px 44px; margin:0 auto; }
+    .stage-heading { margin-bottom:27px; }
+    .stage-heading p { margin-top:9px; color:var(--muted); font-size:15px; max-width:70ch; }
+    .surface { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:26px 28px; }
+    .surface + .surface { margin-top:20px; }
+    .surface-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:22px; }
+    .surface-heading .filename { color:var(--muted); font-size:13px; overflow-wrap:anywhere; text-align:right; }
+    .upload-area { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:13px; min-height:180px; background:#fafafa; border:1px dashed #bbb; border-radius:7px; padding:25px 18px; text-align:center; }
+    .upload-area .file-types { color:var(--muted); font-size:13px; }
+    .file-info { display:flex; align-items:center; gap:14px; border:1px solid var(--line); border-radius:7px; padding:17px; min-width:0; }
+    .file-info .file-symbol { color:#666; width:30px; height:30px; }
+    .file-info .file-description { min-width:0; flex:1; }
+    .file-info strong { font-size:14px; font-weight:550; display:block; overflow-wrap:anywhere; }
+    .file-info span { color:var(--muted); font-size:13px; }
+    .field { display:grid; gap:8px; margin-top:21px; min-width:0; }
+    .field:first-child { margin-top:0; }
+    .field>label,.field>legend { font-size:14px; font-weight:550; }
+    input:not([type=radio]),select,textarea { width:100%; max-width:100%; min-width:0; min-height:46px; border:1px solid var(--control); border-radius:6px; padding:10px 12px; color:var(--text); background:var(--panel); font-size:15px; }
+    input::placeholder,textarea::placeholder { color:#727272; }
+    textarea { resize:vertical; min-height:145px; line-height:1.65; }
+    select:disabled { color:#666; border-color:var(--line); background:var(--soft); }
+    .field-hint { color:var(--muted); font-size:13px; }
+    .mapping-head { display:grid; grid-template-columns:153px minmax(0,1fr); gap:34px; padding:19px 0 0; margin-bottom:18px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); }
+    .mapping-row { display:grid; grid-template-columns:153px minmax(0,1fr); gap:34px; align-items:start; margin-top:18px; min-width:0; }
+    .mapping-name { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-height:46px; position:relative; font-size:15px; font-weight:550; padding-right:4px; }
+    .mapping-arrow { position:absolute; right:-26px; top:14px; width:17px; height:17px; color:#888; }
+    .required-mark { color:var(--muted); font-size:12px; font-weight:400; }
+    .mapping-control { min-width:0; }
+    .mapping-preview { display:block; border:1px solid var(--line); border-radius:6px; margin-top:10px; overflow:hidden; font-size:13px; }
+    .preview-label { padding:8px 12px; background:var(--soft); color:var(--muted); }
+    .preview-value { display:flex; gap:12px; align-items:baseline; padding:9px 12px; border-top:1px solid var(--line); overflow-wrap:anywhere; }
+    .preview-value>span { flex:none; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+    .optional-fields { margin-top:25px; padding-top:20px; border-top:1px solid var(--line); }
+    summary { min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:14px; font-size:15px; font-weight:550; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+    summary::after { content:"＋"; color:#666; font-size:19px; font-weight:400; }
+    details[open]>summary::after { content:"−"; }
+    .optional-label { display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; }
+    .optional-label small { color:var(--muted); font-size:13px; font-weight:400; }
+    .optional-subtitle { margin:21px 0 7px; padding-top:18px; border-top:1px solid var(--line); font-size:14px; font-weight:550; }
+    .ai-purpose { background:#ececec; border-radius:8px; padding:19px 22px; margin-bottom:18px; }
+    .ai-purpose p { margin-top:7px; font-size:14px; color:#555; }
+    .keyword-example { display:flex; flex-wrap:wrap; align-items:center; gap:13px; margin-top:11px; font-size:15px; font-weight:550; }
+    .keyword-example svg { width:18px; height:18px; color:#777; }
+    .ai-shortcut { margin-bottom:18px; }
+    .ai-progress { display:flex; gap:0; padding:0; margin:0 0 24px; list-style:none; border-bottom:1px solid var(--line); }
+    .ai-progress li { flex:1; display:flex; align-items:center; padding:0 8px 13px; font-size:13px; color:var(--muted); }
+    .ai-progress li:first-child { padding-left:0; }
+    .ai-progress li.active { color:var(--text); font-weight:600; box-shadow:0 2px 0 var(--accent); }
+    [data-ai-page]>.field:first-child { margin-top:20px; }
+    .ai-subheading { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:20px; }
+    .location-tag { font-size:12px; color:var(--muted); white-space:nowrap; }
+    .ai-instructions { margin:0 0 22px; padding-left:24px; font-size:15px; }
+    .ai-instructions li { padding-left:4px; margin:13px 0; }
+    .expected-result { padding:16px; border-radius:6px; background:var(--soft); font-size:13px; margin:20px 0; overflow-wrap:anywhere; }
+    pre { margin:9px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.7 ui-monospace,SFMono-Regular,monospace; }
+    .inline-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; margin-top:20px; }
+    .validation { background:var(--ok-bg); color:var(--ok-text); padding:12px 15px; border-radius:6px; font-size:14px; margin-top:18px; }
+    .error-message,.field-error { color:var(--danger); font-size:14px; }
+    .error-message { border:1px solid #e1b5b5; background:var(--danger-bg); border-radius:6px; padding:12px 15px; margin-bottom:22px; }
+    .field-error { display:block; margin-top:8px; }
+    [aria-invalid=true] { border-color:var(--danger)!important; }
+    .table-wrap { overflow-x:auto; margin-top:16px; }
+    table { border-collapse:collapse; width:100%; text-align:left; font-size:13px; }
+    th,td { border-bottom:1px solid var(--line); padding:11px 12px; vertical-align:top; }
+    th { background:var(--soft); font-weight:500; color:var(--muted); white-space:nowrap; }
+    td { overflow-wrap:anywhere; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .form-grid>.field { margin-top:0; }
+    .wide { grid-column:1/-1; }
+    fieldset { margin:25px 0 0; padding:0; border:0; }
+    legend { font-size:15px; font-weight:550; margin-bottom:12px; }
+    .radio-options { display:flex; flex-wrap:wrap; gap:12px 25px; }
+    .radio-options label { display:flex; align-items:center; gap:9px; min-height:44px; font-size:14px; cursor:pointer; }
+    input[type=radio] { accent-color:var(--accent); width:17px; height:17px; flex:none; }
+    .review-list { margin:0; }
+    .review-list>div { display:grid; grid-template-columns:110px minmax(0,1fr); gap:22px; padding:17px 0; border-bottom:1px solid var(--line); }
+    .review-list>div:first-child { padding-top:0; } .review-list>div:last-child { padding-bottom:0; border:0; }
+    .review-list dt { font-size:14px; color:var(--muted); }
+    .review-list dd { margin:0; font-size:14px; overflow-wrap:anywhere; }
+    .review-list dd span { display:block; margin-top:4px; font-size:13px; color:var(--muted); }
+    .wizard-footer { display:flex; justify-content:space-between; align-items:center; gap:18px; padding-top:24px; margin-top:27px; border-top:1px solid var(--line); }
+    .result-grid { display:grid; grid-template-columns:repeat(var(--stat-columns,4),1fr); gap:18px; margin-bottom:24px; }
+    .stat { border-bottom:1px solid var(--line); padding-bottom:20px; }
+    .stat strong { display:block; font-size:28px; font-weight:600; line-height:1.3; font-variant-numeric:tabular-nums; }
+    .stat span { font-size:13px; color:var(--muted); }
+    .download-row { display:flex; flex-wrap:wrap; gap:13px; }
+    .processing-indicator { padding:20px; border:1px solid var(--line); border-radius:8px; background:var(--panel); margin-bottom:22px; display:flex; align-items:center; gap:12px; font-size:14px; }
+    .processing-spinner { width:17px; height:17px; border-radius:50%; border:2px solid #ddd; border-top-color:#444; animation:spin 800ms linear infinite; flex:none; }
+    .privacy-detail { margin-top:22px; }
+    .privacy-detail summary { font-size:13px; font-weight:400; color:var(--muted); }
+    .privacy-detail p { color:var(--muted); font-size:13px; margin-top:7px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media(min-width:1100px) { .sidebar { position:sticky; top:0; height:calc(100vh - 76px); } }
+    @media(max-width:1050px) { .workspace { grid-template-columns:200px minmax(0,1fr); } .stage { padding:32px 27px; } .sidebar { padding:30px 19px; } .surface { padding:23px; } .task { grid-template-columns:195px minmax(0,1fr) 22px; gap:20px; } .mapping-head,.mapping-row { grid-template-columns:125px minmax(0,1fr); gap:30px; } .mapping-arrow { right:-23px; } }
+    @media(max-width:760px) { .topbar { height:66px; padding:0 20px; } .brand { font-size:17px; } .workspace { display:block; min-height:calc(100vh - 66px); } .sidebar { border-right:0; background:var(--bg); padding:23px 20px 0; } .mode-name { margin:0 0 10px; font-size:15px; } .steps { display:flex; gap:18px; overflow-x:auto; padding-bottom:8px; } .steps li { flex:none; padding-bottom:0; } .steps li::after { display:none; } .step-button { font-size:12px; gap:7px; } .step-number { width:24px; height:24px; } .stage { padding:25px 20px 30px; } h1 { font-size:25px; } .stage-heading p { font-size:14px; } .surface { padding:22px 19px; } .surface-heading { align-items:flex-start; flex-direction:column; gap:7px; } .surface-heading .filename { text-align:left; } .mapping-head,.mapping-row { grid-template-columns:100px minmax(0,1fr); gap:28px; } .mapping-name { font-size:14px; gap:5px; } .mapping-arrow { right:-22px; width:16px; height:16px; } .required-mark { font-size:11px; } .mapping-head { font-size:12px; } .mapping-preview { grid-column:1/-1; } .mapping-control .mapping-preview { margin-left:-128px; margin-top:14px; } .home { width:calc(100% - 40px); margin-top:32px; } .task { grid-template-columns:1fr 22px; gap:12px; padding:22px; } .task strong { font-size:18px; } .task .requirements { grid-row:2; grid-column:1; font-size:13px; } .task>svg { grid-column:2; grid-row:1/3; } .task .purpose { font-size:13px; } .combined-entry { padding:20px; flex-direction:column; align-items:stretch; gap:15px; } .combined-entry p { font-size:13px; } .form-grid { grid-template-columns:1fr; } .file-info { padding:13px; gap:10px; } .file-info .text-button { font-size:13px; white-space:nowrap; } .ai-purpose { padding:17px; } .ai-progress li { font-size:12px; padding-right:4px; padding-left:5px; } .ai-subheading { align-items:flex-start; } .ai-subheading h2 { font-size:17px; } .review-list>div { grid-template-columns:85px minmax(0,1fr); gap:15px; } .result-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; } .wizard-footer .btn { padding-left:13px; padding-right:13px; } .optional-label { gap:5px; } .optional-label small { font-size:12px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } .processing-spinner { border-color:#777; } }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <div>
-        <p class="eyebrow">書單處理工具</p>
-        <h1>書單比對與格式轉換</h1>
-      </div>
-      <p class="header-note">資料僅於瀏覽器本機處理；輸出保留原始欄位與順序。</p>
-    </header>
-
-    <section class="layout">
-      <form id="matchForm" class="panel">
-        <section class="mode-section">
-          <h2>處理模式</h2>
-          <p>選擇單一功能，或一次完成全部三項處理。</p>
-          <div class="segmented-control" role="radiogroup" aria-label="處理模式">
-            <label>
-              <input type="radio" name="processingMode" value="department">
-              <span>系所比對</span>
-            </label>
-            <label>
-              <input type="radio" name="processingMode" value="purchase">
-              <span>購買查重</span>
-            </label>
-            <label>
-              <input type="radio" name="processingMode" value="upload">
-              <span>系統上傳</span>
-            </label>
-            <label>
-              <input type="radio" name="processingMode" value="combined" checked>
-              <span>完整流程</span>
-            </label>
+  <a class="skip" href="#mainContent">跳到主要內容</a>
+  <header class="topbar">
+    <button class="brand" type="button" data-action="home" aria-label="書單工具，返回功能入口"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5.5h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v13h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4zM12 6.5v13"/></svg></span>書單工具</button>
+    <button class="text-button" id="switchModeButton" type="button" data-action="home" hidden>切換功能</button>
+  </header>
+  <section id="home" class="home" aria-labelledby="homeTitle">
+    <h1 id="homeTitle" tabindex="-1">今天要處理哪件事？</h1>
+    <p class="home-intro">三項功能都能單獨使用，選一項就可以開始。</p>
+    <div class="task-list">
+      <button class="task" type="button" data-mode="department"><span><strong>系所比對</strong><span class="purpose">找出適合各系所的書</span></span><span class="requirements">準備　<b>出版社書單 ＋ 系所清單或關鍵字表</b><br>得到　附有對應系所的 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      <button class="task" type="button" data-mode="purchase"><span><strong>購買查重</strong><span class="purpose">檢查哪些書已經買過</span></span><span class="requirements">準備　<b>出版社書單 ＋ 已購買書單</b><br>得到　標記購買狀態的 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      <button class="task" type="button" data-mode="upload"><span><strong>格式轉換</strong><span class="purpose">整理成系統可上傳的檔案</span></span><span class="requirements">準備　<b>出版社書單</b><br>得到　系統上傳格式 Excel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+    </div>
+    <div class="combined-entry"><div><h3>這三件事都要做？</h3><p>同一份書單，一次完成系所比對、購買查重與格式轉換。</p></div><button class="btn" type="button" data-mode="combined">執行完整流程<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+    <p class="home-footer">Excel 在瀏覽器本機處理。</p>
+  </section>
+  <div id="workspace" class="workspace" hidden>
+    <aside class="sidebar" aria-label="處理進度"><div id="modeName" class="mode-name"></div><ol id="wizardSteps" class="steps"></ol></aside>
+    <main id="mainContent" class="stage" tabindex="-1">
+      <div class="stage-heading"><h1 id="stageTitle" tabindex="-1"></h1><p id="stageDescription"></p></div>
+      <div id="message" class="error-message" role="alert" tabindex="-1" hidden></div>
+      <div id="stepError" class="error-message" role="alert" hidden></div>
+      <form id="matchForm" novalidate>
+        <div hidden aria-hidden="true"><input type="radio" name="processingMode" value="department" checked><input type="radio" name="processingMode" value="purchase"><input type="radio" name="processingMode" value="upload"><input type="radio" name="processingMode" value="combined"><span id="modeDescription"></span></div>
+        <section data-page="files">
+          <div class="surface"><div class="surface-heading"><h2>出版社書單</h2></div>
+            <input id="sourceFile" type="file" accept=".xlsx,.xls,.xltx" hidden aria-label="出版社書單 Excel">
+            <div id="sourceUploadArea" class="upload-area"><h3>加入出版社書單</h3><span class="file-types">Excel 格式：.xlsx、.xls、.xltx</span><button class="btn" type="button" data-file="sourceFile">選擇 Excel 檔案</button></div>
+            <div id="sourceFileInfo" class="file-info" hidden><svg class="file-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></svg><div class="file-description"><strong id="sourceFileName"></strong><span id="sourceFileMeta" role="status"></span></div><button class="text-button" type="button" data-file="sourceFile">重新選擇</button></div>
+            <div id="sourceSheetField" class="field" hidden><label for="sourceSheet">使用哪個工作表？</label><select id="sourceSheet" disabled></select></div>
           </div>
-          <small id="modeDescription" class="mode-description">一次完成系所比對、購買查重與系統上傳格式。</small>
-        </section>
-
-        <div class="section-title">
-          <div class="section-heading">
-            <h2>書單與欄位設定</h2>
-            <p>上傳出版社書單，指定比對與輸出所需欄位。</p>
+          <div id="purchasedFileField" class="surface"><div class="surface-heading"><h2 id="purchasedFileLabel">已購買書單</h2></div>
+            <input id="purchasedFile" type="file" accept=".xlsx,.xls,.xltx" hidden aria-label="已購買書單 Excel">
+            <div id="purchasedUploadArea" class="upload-area"><h3>加入已購買書單</h3><span class="file-types">用這份書單的 ISBN 檢查購買狀態</span><button class="btn" type="button" data-file="purchasedFile">選擇 Excel 檔案</button></div>
+            <div id="purchasedFileInfo" class="file-info" hidden><svg class="file-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></svg><div class="file-description"><strong id="purchasedFileName"></strong><span id="purchasedFileMeta" role="status"></span></div><button class="text-button" type="button" data-file="purchasedFile">重新選擇</button></div>
+            <div id="purchasedSheetField" class="field" hidden><label for="purchasedSheet">使用哪個工作表？</label><select id="purchasedSheet" disabled></select></div>
           </div>
-        </div>
-
-        <div class="form-grid">
-          <label class="wide">
-            <span>出版社書單</span>
-            <input id="sourceFile" type="file" accept=".xlsx,.xls,.xltx">
-            <small>必填。支援自訂欄位名稱。</small>
-          </label>
-
-          <label>
-            <span>出版社工作表</span>
-            <select id="sourceSheet" disabled></select>
-          </label>
-
-          <label id="purchasedFileField">
-            <span id="purchasedFileLabel">已購買書單</span>
-            <input id="purchasedFile" type="file" accept=".xlsx,.xls,.xltx">
-            <small id="purchasedFileHelp">購買查重與完整流程必填，以指定 ISBN 欄位精確查重。</small>
-          </label>
-
-          <label id="purchasedSheetField">
-            <span>已購買工作表</span>
-            <select id="purchasedSheet" disabled></select>
-            <small>上傳已購買書單後可選擇。</small>
-          </label>
-        </div>
-
-        <section id="sourceMappingSection" class="mapping-section" hidden>
-          <h3>出版社書單欄位用途</h3>
-          <small class="mapping-intro">
-            將 Excel 欄位對應至工具用途。原始欄位不會變更；系所比對、購買查重與格式轉換只使用指定欄位。
-          </small>
-          <div id="sourceMapping" class="mapping-grid"></div>
         </section>
-
-        <section id="purchasedMappingSection" class="mapping-section" hidden>
-          <h3>已購買書單欄位用途</h3>
-          <div id="purchasedMapping" class="mapping-grid"></div>
+        <section data-page="mapping" hidden>
+          <section id="sourceMappingSection" class="surface" hidden><div class="surface-heading"><h2>出版社書單</h2><span id="sourceMappingFile" class="filename"></span></div><div class="mapping-head"><span>工具需要的資料</span><span>對應的 Excel 欄位</span></div><div id="sourceMapping"></div></section>
+          <section id="purchasedMappingSection" class="surface" hidden><div class="surface-heading"><h2>已購買書單</h2><span id="purchasedMappingFile" class="filename"></span></div><div class="mapping-head"><span>工具需要的資料</span><span>對應的 Excel 欄位</span></div><div id="purchasedMapping"></div></section>
         </section>
-
-        <section id="departmentSection" class="mapping-section">
-          <div class="section-title">
-            <div class="section-heading">
-              <h2>系所比對</h2>
-              <p>使用系所關鍵字 CSV 進行比對，輸出保留原始欄位。</p>
+        <section data-page="department" hidden>
+          <section id="departmentSection">
+            <div id="aiPurpose" class="ai-purpose"><h3>AI 幫你把系所名稱整理成關鍵字</h3><div class="keyword-example"><span>財務金融學系</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>金融、投資、finance</span></div><p>例如書名含有 finance，就可能對應到財務金融學系。</p></div>
+            <div id="aiShortcut" class="ai-shortcut"><button type="button" class="text-button" data-action="existing-csv">已有關鍵字表？直接貼上或匯入 CSV<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
+            <div class="surface"><ol id="aiProgress" class="ai-progress"><li>1 貼上系所名稱</li><li>2 請 AI 產生關鍵字</li><li>3 貼回關鍵字表</li></ol>
+              <div id="aiSchoolField" class="field"><label for="schoolName">學校名稱</label><input id="schoolName" type="text" placeholder="例如：淡江大學" autocomplete="off"></div>
+              <section data-ai-page="0"><div class="field"><label for="sourceDepartmentText">系所名稱清單</label><textarea id="sourceDepartmentText" placeholder="從學校網站複製系所清單，貼在這裡。"></textarea></div><div class="inline-actions"><button id="copyPromptButton" class="btn primary" type="button">複製給 AI 的指令<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
+              <section data-ai-page="1" hidden><div class="ai-subheading"><h2>到 AI 產生各系所的關鍵字</h2><span class="location-tag">在 AI 工具操作</span></div><ol class="ai-instructions"><li>開啟你使用的 AI 聊天視窗。</li><li><strong>貼上剛才複製的指令並送出。</strong></li><li>AI 回覆後，<strong>複製整段關鍵字表</strong>，包含第一列欄名。</li></ol><div class="expected-result">AI 回覆範例<pre>學校名稱,系所名稱,關鍵字
+淡江大學,財務金融學系,金融;投資;finance</pre></div><div class="inline-actions"><button class="btn primary" type="button" data-action="return-csv">已複製結果，回來貼上</button><button class="text-button" type="button" data-action="copy-again">重新複製指令</button></div><button class="text-button" type="button" data-action="edit-departments">返回修改系所名稱</button><div id="promptFallback" class="field" hidden><label for="manualPrompt">請手動複製完整指令</label><textarea id="manualPrompt" readonly></textarea></div></section>
+              <section data-ai-page="2" hidden><div class="field"><label for="keywordText">系所關鍵字表（CSV 格式）</label><textarea id="keywordText" placeholder="學校名稱,系所名稱,關鍵字&#10;淡江大學,財務金融學系,金融;投資;finance"></textarea></div><input id="keywordFile" type="file" accept=".csv,.txt" hidden aria-label="系所關鍵字 CSV"><div class="inline-actions"><button class="btn" type="button" data-action="check-csv">檢查關鍵字表</button><button class="text-button" type="button" data-file="keywordFile">匯入 CSV 檔</button><button class="text-button" type="button" data-action="edit-departments">重新用 AI 整理</button></div><div id="csvFeedback" aria-live="polite"></div><details class="privacy-detail"><summary>查看關鍵字表格式</summary><pre>學校名稱,系所名稱,關鍵字
+淡江大學,財務金融學系,金融;投資;finance</pre></details></section>
             </div>
-          </div>
-
-          <div class="form-grid">
-            <label>
-              <span>學校名稱</span>
-              <input id="schoolName" type="text" placeholder="例如：淡江大學">
-            </label>
-
-            <label class="wide">
-              <span>學校系所資料（供 AI 整理）</span>
-              <textarea id="sourceDepartmentText" placeholder="貼上學院、系所清單或學校資料。"></textarea>
-            </label>
-
-            <label class="wide">
-              <span>系所關鍵字 Prompt</span>
-              <button id="copyPromptButton" class="secondary" type="button">複製系所關鍵字 Prompt</button>
-              <small>將 Prompt 貼至 AI；完成後將回傳 CSV 貼至下方。</small>
-            </label>
-
-            <label class="wide">
-              <span>系所關鍵字 CSV</span>
-              <textarea id="keywordText" placeholder="學校名稱,系所名稱,關鍵字&#10;淡江大學,財務金融學系,財務金融;金融;投資;corporate finance"></textarea>
-            </label>
-
-            <label class="wide">
-              <span>CSV 檔案（選填）</span>
-              <input id="keywordFile" type="file" accept=".csv,.txt">
-            </label>
-          </div>
+          </section>
         </section>
-
-        <section id="uploadPanel" class="upload-module">
-          <div class="section-title">
-            <div class="section-heading">
-              <h2>系統上傳格式</h2>
-              <p>設定系統上傳欄位與批次填入內容。</p>
-            </div>
-          </div>
-          <div id="uploadReadiness" class="readiness" role="status">尚未就緒：請先上傳出版社書單並完成必要設定。</div>
-          <div class="form-grid">
-            <label>
-              <span>學校代碼</span>
-              <input id="schoolCode" type="text" placeholder="例如：FLYSHEET">
-              <small>建議填入 FLYSHEET。</small>
-            </label>
-
-            <label>
-              <span>主題代碼</span>
-              <input id="subjectCode" type="text" placeholder="例如：EBOOK">
-              <small>自動轉為大寫；限英文字母、數字與底線。</small>
-            </label>
-
-            <div class="wide sdg-settings">
-              <span>SDGs 判定方式</span>
-              <div class="segmented-control compact" role="radiogroup" aria-label="SDGs 判定方式">
-                <label>
-                  <input type="radio" name="sdgMode" value="auto" checked>
-                  <span>自動判定</span>
-                </label>
-                <label>
-                  <input type="radio" name="sdgMode" value="manual">
-                  <span>統一填入</span>
-                </label>
-              </div>
-              <small id="sdgModeDescription" class="field-note">依指定的書名、主題、子主題、內容簡介與目次判定；未命中時填入 ,0,。目前內建 2026-07-13 版 SDG 1 至 16 規則。</small>
-            </div>
-
-            <label id="sdgsManualField" class="wide" hidden>
-              <span>統一填入的 SDGs</span>
-              <input id="sdgs" type="text" placeholder=",9,">
-              <small class="field-note">同一設定會填入所有資料列。格式：,9, 或 ,9,12,；個別值請於匯出後修改。</small>
-            </label>
-          </div>
-        </section>
-
-        <div class="actions">
-          <button id="submitButton" type="submit">執行完整流程並產生檔案</button>
-          <div id="processingIndicator" class="processing-indicator" role="status" aria-live="polite" hidden>
-            <span class="processing-spinner" aria-hidden="true"></span>
-            <span id="processingText">正在處理書單，請稍候...</span>
-          </div>
-          <a id="downloadOutput" class="button-link" href="#" download="書單_自訂欄位用途_比對結果.xlsx" hidden>下載比對結果</a>
-          <a id="downloadUpload" class="button-link" href="#" download="系統上傳格式.xlsx" hidden>下載系統上傳格式</a>
-        </div>
-
-        <section id="message" class="message" hidden></section>
-
-        <section id="result" hidden>
-          <div id="resultGrid" class="result-grid">
-            <div class="stat"><strong id="totalCount">0</strong><span>總筆數</span></div>
-            <div id="purchasedStat" class="stat"><strong id="purchasedCount">0</strong><span>已購買</span></div>
-            <div id="notPurchasedStat" class="stat"><strong id="notPurchasedCount">0</strong><span>未購買</span></div>
-            <div id="departmentStat" class="stat"><strong id="departmentCount">0</strong><span>命中系所</span></div>
-          </div>
-        </section>
+        <section data-page="upload" hidden><section id="uploadPanel" class="surface"><div class="form-grid"><div class="field"><label for="schoolCode">學校代碼</label><input id="schoolCode" type="text" placeholder="例如：FLYSHEET" autocomplete="off"></div><div class="field"><label for="subjectCode">主題代碼</label><input id="subjectCode" type="text" placeholder="例如：EBOOK" autocomplete="off" aria-describedby="subjectCodeHint"><span id="subjectCodeHint" class="field-hint">限英文字母、數字、底線；自動轉為大寫。</span></div></div><fieldset><legend>SDGs 判定方式</legend><div class="radio-options"><label><input type="radio" name="sdgMode" value="auto" checked>依書目內容自動判定</label><label><input type="radio" name="sdgMode" value="manual">全部書目填入相同值</label></div></fieldset><div id="sdgsManualField" class="field" hidden><label for="sdgs">統一填入的 SDGs</label><input id="sdgs" type="text" placeholder=",9, 或 ,9,12," aria-describedby="sdgsHint"><span id="sdgsHint" class="field-hint">例如 ,9, 或 ,9,12,。</span></div><details class="privacy-detail"><summary>SDGs 判定說明</summary><p id="sdgModeDescription"></p></details><div id="uploadReadiness" hidden></div></section></section>
+        <section data-page="review" hidden><section class="surface"><dl id="reviewSummary" class="review-list"></dl></section></section>
+        <div id="processingIndicator" class="processing-indicator" role="status" aria-live="polite" hidden><span class="processing-spinner" aria-hidden="true"></span><span id="processingText">正在處理書單，請稍候...</span></div>
+        <section data-page="complete" hidden><div class="surface"><section id="result" hidden><div id="resultGrid" class="result-grid"><div class="stat"><strong id="totalCount">0</strong><span>總筆數</span></div><div id="purchasedStat" class="stat"><strong id="purchasedCount">0</strong><span>已購買</span></div><div id="notPurchasedStat" class="stat"><strong id="notPurchasedCount">0</strong><span>未購買</span></div><div id="departmentStat" class="stat"><strong id="departmentCount">0</strong><span>命中系所</span></div></div></section><div class="download-row"><a id="downloadOutput" class="button-link" href="#" download="書單_比對結果.xlsx" hidden>下載比對結果 Excel</a><a id="downloadUpload" class="button-link" href="#" download="系統上傳格式.xlsx" hidden>下載系統上傳格式 Excel</a></div></div></section>
+        <div class="wizard-footer"><button id="backButton" class="btn" type="button" data-action="back">上一步</button><button id="nextButton" class="btn primary" type="button" data-action="next">下一步<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button id="submitButton" class="btn primary" type="submit" hidden>產生 Excel</button><button id="newTaskButton" class="btn primary" type="button" data-action="home" hidden>選擇其他功能</button></div>
       </form>
-
-      <aside class="side-panel">
-        <section class="panel">
-          <h2>工作狀態</h2>
-          <div class="status-list">
-            <div id="sourceStatus" class="status-row">
-              <span class="status-dot"></span>
-              <div><strong>出版社書單</strong><small>尚未上傳</small></div>
-            </div>
-            <div id="mappingStatus" class="status-row">
-              <span class="status-dot"></span>
-              <div><strong>必要欄位</strong><small>等待書單</small></div>
-            </div>
-            <div id="purchasedStatus" class="status-row">
-              <span class="status-dot"></span>
-              <div><strong>購買查重</strong><small>未使用</small></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h2>比對規則</h2>
-          <ul class="plain-list">
-            <li>CSV 欄位：學校名稱、系所名稱、關鍵字</li>
-            <li>關鍵字用 ; 或 ； 分隔</li>
-            <li>只比對指定的五種內容欄位</li>
-            <li>ISBN 查重不使用書名模糊比對</li>
-          </ul>
-        </section>
-
-        <section class="note">
-          三項功能可分別使用；完整流程會一次完成全部處理。
-        </section>
-      </aside>
-    </section>
-  </main>
-
+      <details class="privacy-detail"><summary>資料處理方式</summary><p>Excel 與 CSV 在瀏覽器本機處理。AI 指令包含你填寫的學校與系所資料，需自行複製到 AI 工具。重新整理會清除本次操作。</p></details>
+      <div hidden aria-hidden="true"><div id="sourceStatus"><small></small></div><div id="mappingStatus"><small></small></div><div id="purchasedStatus"><small></small></div></div>
+    </main>
+  </div>
   <script>
     const SOURCE_FIELDS = [
       { key: "title", label: "title：書名", required: true, help: "系所比對與系統上傳時必填。" },
@@ -936,24 +349,378 @@
       purchasedStatus: document.querySelector("#purchasedStatus"),
     };
 
+    // UI state stays in memory; the existing workbook and matching functions remain authoritative.
+    const ui = { mode: null, step: "files", aiStep: 0, csvStamp: "", busy: false, loading: new Set() };
+    const uiModes = {
+      department: { name: "系所比對", steps: ["files", "mapping", "department", "review"] },
+      purchase: { name: "購買查重", steps: ["files", "mapping", "review"] },
+      upload: { name: "格式轉換", steps: ["files", "mapping", "upload", "review"] },
+      combined: { name: "完整流程", steps: ["files", "mapping", "department", "upload", "review"] },
+    };
+    const uiLabels = { files: "上傳書單", mapping: "對應 Excel 欄位", department: "建立系所關鍵字表", upload: "設定上傳格式", review: "確認並產生" };
+    const uiArrow = '<svg class="mapping-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
+    const uiCheck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
+    const fieldNames = { title: "書名", subject_main: "主題", subject_sub: "子主題", description: "內容簡介", toc: "目次", source_purchase_key: "ISBN／查重欄位", author: "作者", publisher: "出版者", year: "出版年", url: "網址", price: "價格", language: "語言", upload_isbn: "上傳用 ISBN", upload_subject: "上傳用主題", purchased_key: "ISBN／查重欄位", purchased_title: "書名", purchased_date: "購買日期", purchased_source: "購買來源" };
+    const byId = (id) => document.getElementById(id);
+    const csvSignature = () => JSON.stringify([cleanText(els.schoolName.value), normalizeCsvInput(els.keywordText.value)]);
+
+    function stepIssue(step) {
+      const flags = getModeFlags();
+      const sourceMap = getFieldMap("source-field");
+      const purchasedMap = getFieldMap("purchased-field");
+      const issue = (message, selector) => ({ message, selector });
+      if (step === "files") {
+        if (ui.loading.size) return issue("書單讀取中，請稍候。", "#nextButton");
+        if (!state.sourceData) return issue("請先選擇出版社書單與工作表。", '[data-file="sourceFile"]');
+        if (flags.includePurchase && !state.purchasedWorkbook) return issue("這次有購買查重，請加入已購買書單。", '[data-file="purchasedFile"]');
+        if (flags.includePurchase && !state.purchasedData) return issue("請選擇已購買書單的工作表。", "#purchasedSheet");
+      }
+      if (step === "mapping") {
+        if ((flags.includeDepartment || flags.includeUpload) && sourceMap.title == null) return issue("請選擇出版社書單中放書名的欄位。", '[data-source-field="title"]');
+        if (flags.includePurchase && sourceMap.source_purchase_key == null) return issue("請選擇出版社書單的 ISBN／查重欄位。", '[data-source-field="source_purchase_key"]');
+        if (flags.includePurchase && purchasedMap.purchased_key == null) return issue("請選擇已購買書單的 ISBN／查重欄位。", '[data-purchased-field="purchased_key"]');
+      }
+      if (step === "department") {
+        if (!cleanText(els.schoolName.value)) return issue("請填寫這次要比對的學校名稱。", "#schoolName");
+        if (ui.csvStamp !== csvSignature()) return issue("請貼回關鍵字表，並按「檢查關鍵字表」。", "#keywordText");
+      }
+      if (step === "upload") {
+        if (!cleanText(els.schoolCode.value)) return issue("請填寫學校代碼。", "#schoolCode");
+        if (!/^[A-Z0-9_]+$/i.test(cleanText(els.subjectCode.value))) return issue("主題代碼請使用英文字母、數字或底線。", "#subjectCode");
+        if (getSdgMode() === "manual" && !/^,(?:\d+,)+$/.test(cleanText(els.sdgs.value))) return issue("請使用 ,9, 或 ,9,12, 這樣的 SDGs 格式。", "#sdgs");
+      }
+      return null;
+    }
+
+    function clearUiErrors() {
+      byId("stepError").hidden = true;
+      els.message.hidden = true;
+      document.querySelectorAll("[aria-invalid=true]").forEach((element) => element.removeAttribute("aria-invalid"));
+      document.querySelectorAll(".field-error").forEach((element) => element.remove());
+    }
+
+    function showStepIssue(problem) {
+      byId("stepError").textContent = problem.message;
+      byId("stepError").hidden = false;
+      const control = document.querySelector(problem.selector);
+      if (!control) return;
+      const details = control.closest("details");
+      if (details) details.open = true;
+      if (control.matches("input,select,textarea")) {
+        control.setAttribute("aria-invalid", "true");
+        const inline = document.createElement("span");
+        inline.className = "field-error";
+        inline.textContent = problem.message;
+        control.insertAdjacentElement("afterend", inline);
+      }
+      control.focus();
+    }
+
+    function firstUnreadyBefore(step) {
+      if (!ui.mode) return null;
+      for (const previous of uiModes[ui.mode].steps) {
+        if (previous === step) break;
+        if (stepIssue(previous)) return previous;
+      }
+      return null;
+    }
+
+    function setRoute(replace = false) {
+      const hash = ui.mode ? `#${ui.mode}/${ui.step}` : "";
+      if (location.hash !== hash) history[replace ? "replaceState" : "pushState"](null, "", location.pathname + location.search + hash);
+    }
+
+    function focusStage() {
+      if (!ui.mode) byId("homeTitle").focus({ preventScroll: true });
+      else byId("stageTitle").focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+
+    function goToStep(step, replace = false) {
+      if (ui.busy || ui.loading.size || !ui.mode) return;
+      const blocked = firstUnreadyBefore(step);
+      ui.step = blocked || step;
+      clearUiErrors();
+      setRoute(replace);
+      syncInterface();
+      focusStage();
+      if (blocked) showStepIssue(stepIssue(blocked));
+    }
+
+    function selectMode(mode, replace = false) {
+      if (!uiModes[mode] || ui.busy || ui.loading.size) return;
+      ui.mode = mode;
+      ui.step = "files";
+      const radio = document.querySelector(`input[name="processingMode"][value="${mode}"]`);
+      radio.checked = true;
+      clearOutputs();
+      clearUiErrors();
+      updateProcessingMode();
+      updateInterfaceStatus();
+      setRoute(replace);
+      focusStage();
+    }
+
+    function advanceStep() {
+      if (ui.busy || ui.loading.size || !ui.mode) return;
+      clearUiErrors();
+      const problem = stepIssue(ui.step);
+      if (problem) {
+        if (ui.step === "department") setAiPage(2);
+        showStepIssue(problem);
+        return;
+      }
+      const steps = uiModes[ui.mode].steps;
+      const next = steps[steps.indexOf(ui.step) + 1];
+      if (next) goToStep(next);
+    }
+
+    function renderMappingControls(container, fields, headers, attrName) {
+      container.innerHTML = '<div class="required-fields"></div><details class="optional-fields"><summary><span class="optional-label">選填欄位<small></small></span></summary><div class="optional-content"></div></details>';
+      const optional = container.querySelector(".optional-content");
+      fields.forEach((field) => {
+        const label = document.createElement("label");
+        label.className = "mapping-row";
+        label.dataset.mappingKey = field.key;
+        label.dataset.mappingType = attrName;
+        const name = document.createElement("span");
+        name.className = "mapping-name";
+        name.innerHTML = `${escapeHtml(fieldNames[field.key] || field.key)}<span class="required-mark" hidden>必填</span>${uiArrow}`;
+        const control = document.createElement("span");
+        control.className = "mapping-control";
+        const select = document.createElement("select");
+        select.setAttribute(`data-${attrName}`, field.key);
+        select.setAttribute("aria-label", `${attrName === "source-field" ? "出版社書單" : "已購買書單"}的${fieldNames[field.key]}對應欄位`);
+        select.appendChild(new Option("不使用此欄位", ""));
+        headers.forEach((header, index) => select.appendChild(new Option(`${header || "空白欄名"}（第 ${index + 1} 欄）`, String(index))));
+        const preview = document.createElement("span");
+        preview.className = "mapping-preview";
+        preview.hidden = true;
+        control.append(select, preview);
+        label.append(name, control);
+        optional.appendChild(label);
+      });
+      updateRequiredIndicators();
+    }
+
+    function arrangeMappingFields() {
+      const flags = getModeFlags();
+      [els.sourceMapping, els.purchasedMapping].forEach((container) => {
+        if (!container.querySelector(".required-fields")) return;
+        const rows = [...container.querySelectorAll(".mapping-row")];
+        const summaries = [];
+        rows.forEach((row) => {
+          const key = row.dataset.mappingKey;
+          const type = row.dataset.mappingType;
+          const required = !row.querySelector(".required-mark").hidden;
+          const isUsed = type === "purchased-field" ? flags.includePurchase
+            : flags.includeUpload || (flags.includeDepartment && ["title", "subject_main", "subject_sub", "description", "toc"].includes(key)) || (flags.includePurchase && key === "source_purchase_key");
+          row.hidden = !isUsed;
+          row.querySelector("select").required = required;
+          container.querySelector(required ? ".required-fields" : ".optional-content").appendChild(row);
+          if (isUsed && !required) summaries.push(fieldNames[key]);
+        });
+        const details = container.querySelector("details");
+        details.hidden = !summaries.length;
+        details.querySelector("small").textContent = summaries.slice(0, 4).join("、") + (summaries.length > 4 ? "等" : "");
+      });
+    }
+
+    function updateMappingPreviews() {
+      document.querySelectorAll(".mapping-row").forEach((row) => {
+        const data = row.dataset.mappingType === "source-field" ? state.sourceData : state.purchasedData;
+        const select = row.querySelector("select");
+        const preview = row.querySelector(".mapping-preview");
+        preview.hidden = select.value === "" || !data;
+        if (!preview.hidden) {
+          const cells = data.rows.slice(0, 2).map((entry, index) => `<span class="preview-value"><span>${String(index + 1).padStart(2, "0")}</span>${escapeHtml(getCell(entry, Number(select.value)) || "（空白）")}</span>`).join("");
+          const markup = `<span class="preview-label" style="display:block">Excel 內容預覽</span>${cells}`;
+          if (preview.innerHTML !== markup) preview.innerHTML = markup;
+        }
+      });
+    }
+
+    function setAiPage(index) {
+      ui.aiStep = index;
+      document.querySelectorAll("[data-ai-page]").forEach((page) => { page.hidden = Number(page.dataset.aiPage) !== index; });
+      [...byId("aiProgress").children].forEach((item, i) => {
+        item.classList.toggle("active", i === index);
+        if (i === index) item.setAttribute("aria-current", "step"); else item.removeAttribute("aria-current");
+      });
+      byId("aiSchoolField").hidden = index === 1;
+      byId("aiPurpose").hidden = index !== 0;
+      byId("aiShortcut").hidden = index !== 0;
+      syncInterface();
+    }
+
+    async function prepareAiPrompt() {
+      clearUiErrors();
+      if (!cleanText(els.schoolName.value)) { showStepIssue({ message: "請填寫學校名稱。", selector: "#schoolName" }); return; }
+      if (!cleanText(els.sourceDepartmentText.value)) { showStepIssue({ message: "請貼上系所名稱清單。", selector: "#sourceDepartmentText" }); return; }
+      const prompt = buildAiPrompt();
+      let copied = false;
+      try { await copyText(prompt); copied = true; } catch (_) { /* A visible manual copy field is the fallback. */ }
+      setAiPage(1);
+      byId("promptFallback").hidden = copied;
+      if (!copied) { byId("manualPrompt").value = prompt; byId("manualPrompt").focus(); byId("manualPrompt").select(); }
+      else byId("aiProgress").scrollIntoView({ block: "nearest" });
+    }
+
+    function checkKeywordTable() {
+      clearUiErrors();
+      ui.csvStamp = "";
+      try {
+        const school = cleanText(els.schoolName.value);
+        if (!school) { showStepIssue({ message: "請先填寫要比對的學校名稱。", selector: "#schoolName" }); return false; }
+        const rows = parseCsvRows(normalizeCsvInput(els.keywordText.value));
+        if (rows.some((row) => !cleanText(row["學校名稱"]) || !cleanText(row["系所名稱"]) || !splitKeywords(row["關鍵字"]).length)) throw new Error("每列都需要學校名稱、系所名稱與關鍵字，請補齊後再檢查。");
+        const rules = parseDepartmentRules(els.keywordText.value, school);
+        if (!rules.length) throw new Error(`關鍵字表找不到「${school}」，請確認學校名稱與表格內容。`);
+        ui.csvStamp = csvSignature();
+        byId("csvFeedback").innerHTML = `<div class="validation">已找到「${escapeHtml(school)}」的 ${rules.length} 筆系所資料。</div><div class="table-wrap" tabindex="0" role="region" aria-label="系所關鍵字預覽"><table><thead><tr><th>系所名稱</th><th>關鍵字</th></tr></thead><tbody>${rules.slice(0, 3).map((rule) => `<tr><td>${escapeHtml(rule.department)}</td><td>${escapeHtml(rule.keywords.join("；"))}</td></tr>`).join("")}</tbody></table></div>`;
+        syncInterface();
+        return true;
+      } catch (error) {
+        byId("csvFeedback").innerHTML = "";
+        showStepIssue({ message: error.message, selector: "#keywordText" });
+        syncInterface();
+        return false;
+      }
+    }
+
+    function updateReview() {
+      if (!ui.mode || ui.step !== "review") return;
+      const flags = getModeFlags();
+      const sourceMap = getFieldMap("source-field");
+      const rows = [["本次功能", uiModes[ui.mode].name], ["出版社書單", `${escapeHtml(els.sourceFile.files[0]?.name || "")}<span>${escapeHtml(els.sourceSheet.value)} · ${state.sourceData?.rows.length || 0} 筆</span>`]];
+      const mappings = [];
+      if (flags.includeDepartment || flags.includeUpload) mappings.push(`書名 ← ${escapeHtml(state.sourceData?.headers[sourceMap.title] || "")}`);
+      if (flags.includePurchase) mappings.push(`ISBN ← ${escapeHtml(state.sourceData?.headers[sourceMap.source_purchase_key] || "")}`);
+      rows.push(["欄位對應", mappings.join("<br>")]);
+      if (flags.includePurchase) rows.push(["已購買書單", `${escapeHtml(els.purchasedFile.files[0]?.name || "")}<span>${escapeHtml(els.purchasedSheet.value)} · ${state.purchasedData?.rows.length || 0} 筆</span>`]);
+      if (flags.includeDepartment) rows.push(["系所關鍵字", `${escapeHtml(cleanText(els.schoolName.value))}<span>${parseDepartmentRules(els.keywordText.value, cleanText(els.schoolName.value)).length} 筆系所資料</span>`]);
+      if (flags.includeUpload) rows.push(["上傳格式", `${escapeHtml(cleanText(els.schoolCode.value))} ／ ${escapeHtml(cleanText(els.subjectCode.value).toUpperCase())}<span>SDGs：${getSdgMode() === "auto" ? "自動判定" : escapeHtml(els.sdgs.value)}</span>`]);
+      rows.push(["輸出檔案", flags.mode === "combined" ? "比對結果 Excel ＋ 系統上傳格式 Excel" : flags.includeUpload ? "系統上傳格式 Excel" : "比對結果 Excel"]);
+      byId("reviewSummary").innerHTML = rows.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("");
+    }
+
+    function syncInterface() {
+      const active = Boolean(ui.mode);
+      byId("home").hidden = active;
+      byId("workspace").hidden = !active;
+      byId("switchModeButton").hidden = !active;
+      byId("switchModeButton").disabled = ui.busy || ui.loading.size > 0;
+      byId("sourceUploadArea").hidden = Boolean(state.sourceWorkbook);
+      byId("sourceFileInfo").hidden = !state.sourceWorkbook;
+      byId("sourceSheetField").hidden = !state.sourceWorkbook;
+      byId("sourceFileName").textContent = els.sourceFile.files[0]?.name || "";
+      byId("sourceFileMeta").textContent = state.sourceData ? `${state.sourceData.rows.length.toLocaleString()} 筆書目` : "";
+      byId("purchasedUploadArea").hidden = Boolean(state.purchasedWorkbook);
+      byId("purchasedFileInfo").hidden = !state.purchasedWorkbook;
+      byId("purchasedFileName").textContent = els.purchasedFile.files[0]?.name || "";
+      byId("purchasedFileMeta").textContent = state.purchasedData ? `${state.purchasedData.rows.length.toLocaleString()} 筆書目` : "請選擇工作表";
+      els.purchasedSheetField.hidden = !getModeFlags().includePurchase || !state.purchasedWorkbook;
+      byId("sourceMappingFile").textContent = els.sourceSheet.value;
+      byId("purchasedMappingFile").textContent = els.purchasedSheet.value;
+      document.querySelectorAll("[data-file]").forEach((button) => { button.disabled = ui.busy || ui.loading.size > 0; });
+      updateMappingPreviews();
+      if (!active) { document.title = "書單工具｜推薦書單生成及複本比對"; return; }
+      const steps = uiModes[ui.mode].steps;
+      const index = ui.step === "complete" ? steps.length : steps.indexOf(ui.step);
+      byId("modeName").textContent = uiModes[ui.mode].name;
+      byId("wizardSteps").innerHTML = steps.map((step, i) => {
+        const done = i < index;
+        const disabled = ui.busy || ui.loading.size > 0 || Boolean(firstUnreadyBefore(step));
+        return `<li><button type="button" class="step-button ${done ? "done" : i === index ? "current" : ""}" data-step="${step}" ${disabled ? "disabled" : ""} ${i === index ? 'aria-current="step"' : ""}><span class="step-number">${done ? uiCheck : i + 1}</span><span>${uiLabels[step]}</span></button></li>`;
+      }).join("");
+      const titles = { files: getModeFlags().includePurchase ? "加入這次要比對的兩份書單" : "加入出版社書單", mapping: "對應 Excel 欄位", department: "建立系所關鍵字表", upload: "設定系統上傳格式", review: "確認後，產生 Excel", complete: "處理完成" };
+      const descriptions = { files: "選擇 Excel 檔案與要處理的工作表。", mapping: "選擇書名、主題等資料在 Excel 裡的欄位。", department: "工具會用表裡的關鍵字比對書單，找出對應系所。", upload: "設定輸出檔案需要的代碼與 SDGs。", review: "需要調整時，可點選左側步驟返回修改。", complete: `已處理 ${state.sourceData?.rows.length.toLocaleString() || 0} 筆書目，可以下載結果。` };
+      byId("stageTitle").textContent = titles[ui.step];
+      byId("stageDescription").textContent = descriptions[ui.step];
+      document.title = `${titles[ui.step]}｜書單工具`;
+      document.querySelectorAll("[data-page]").forEach((page) => { page.hidden = page.dataset.page !== ui.step; });
+      byId("backButton").textContent = ui.step === "files" ? "返回功能入口" : ui.step === "complete" ? "返回確認畫面" : "上一步";
+      byId("backButton").disabled = ui.busy || ui.loading.size > 0;
+      const next = byId("nextButton");
+      next.hidden = ["review", "complete"].includes(ui.step) || (ui.step === "department" && ui.aiStep !== 2);
+      next.disabled = ui.busy || ui.loading.size > 0;
+      const nextLabel = uiLabels[steps[index + 1]] || "下一步";
+      next.innerHTML = `${ui.loading.size ? "讀取書單中…" : nextLabel}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>`;
+      els.submitButton.hidden = ui.step !== "review";
+      els.submitButton.disabled = ui.busy || Boolean(firstUnreadyBefore("review"));
+      byId("newTaskButton").hidden = ui.step !== "complete";
+      updateReview();
+    }
+
+    function readUiRoute() {
+      if (ui.busy || ui.loading.size) { setRoute(true); return; }
+      const [mode, requestedStep] = location.hash.slice(1).split("/");
+      if (!uiModes[mode]) { ui.mode = null; clearUiErrors(); syncInterface(); return; }
+      if (ui.mode !== mode) selectMode(mode, true);
+      const step = uiModes[mode].steps.includes(requestedStep) ? requestedStep : requestedStep === "complete" && (state.outputBytes || state.uploadBytes) ? "complete" : "files";
+      goToStep(step, true);
+    }
+
+    document.addEventListener("click", async (event) => {
+      if (event.target.closest(".skip")) { event.preventDefault(); (ui.mode ? byId("mainContent") : byId("homeTitle")).focus(); return; }
+      const modeButton = event.target.closest("[data-mode]");
+      if (modeButton) { selectMode(modeButton.dataset.mode); return; }
+      const stepButton = event.target.closest("[data-step]");
+      if (stepButton && !stepButton.disabled) { goToStep(stepButton.dataset.step); return; }
+      const fileButton = event.target.closest("[data-file]");
+      if (fileButton && !fileButton.disabled) { byId(fileButton.dataset.file).click(); return; }
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (!action || ui.busy || ui.loading.size) return;
+      if (action === "home") { ui.mode = null; clearUiErrors(); setRoute(); syncInterface(); focusStage(); }
+      if (action === "next") advanceStep();
+      if (action === "back") {
+        if (ui.step === "complete") goToStep("review");
+        else if (ui.step === "files") { ui.mode = null; clearUiErrors(); setRoute(); syncInterface(); focusStage(); }
+        else goToStep(uiModes[ui.mode].steps[uiModes[ui.mode].steps.indexOf(ui.step) - 1]);
+      }
+      if (["existing-csv", "return-csv"].includes(action)) { clearUiErrors(); setAiPage(2); }
+      if (action === "edit-departments") { clearUiErrors(); setAiPage(0); }
+      if (action === "copy-again") await prepareAiPrompt();
+      if (action === "check-csv") checkKeywordTable();
+    });
+
+    els.form.addEventListener("input", (event) => {
+      if (ui.busy) return;
+      clearOutputs();
+      clearUiErrors();
+      if ([els.schoolName, els.keywordText, els.sourceDepartmentText].includes(event.target)) {
+        ui.csvStamp = "";
+        byId("csvFeedback").innerHTML = "";
+      }
+      syncInterface();
+    });
+    window.addEventListener("popstate", readUiRoute);
+    window.addEventListener("hashchange", readUiRoute);
+
+
     updateProcessingMode();
     updateSdgMode();
     updateInterfaceStatus();
 
     els.sourceFile.addEventListener("change", async () => {
       clearOutputs();
+      clearUiErrors();
       const file = els.sourceFile.files[0];
-      if (!file) return resetSource();
+      resetSource();
+      if (!file) return;
+      ui.loading.add("source");
+      syncInterface();
       try {
         ensureXlsx();
         state.sourceWorkbook = await readWorkbook(file);
         populateSheetSelect(els.sourceSheet, state.sourceWorkbook.SheetNames);
         loadSourceSheet();
-        updateInterfaceStatus();
-        showMessage("出版社書單已載入，請確認欄位設定。", false);
       } catch (error) {
         resetSource();
-        showMessage(error.message || "出版社書單讀取失敗。", true);
+        showMessage(error.message || "出版社書單讀取失敗，請重新選擇檔案。", true);
+      } finally {
+        ui.loading.delete("source");
+        updateInterfaceStatus();
       }
     });
 
@@ -965,31 +732,32 @@
         showMessage("工作表已切換，欄位設定已更新。", false);
       } catch (error) {
         showMessage(error.message || "工作表讀取失敗。", true);
+        updateInterfaceStatus();
       }
     });
 
     els.purchasedFile.addEventListener("change", async () => {
       clearOutputs();
+      clearUiErrors();
       const file = els.purchasedFile.files[0];
-      if (!file) {
-        state.purchasedWorkbook = null;
-        state.purchasedData = null;
-        els.purchasedMapping.innerHTML = "";
-        els.purchasedMappingSection.hidden = true;
-        els.purchasedSheet.innerHTML = "";
-        els.purchasedSheet.disabled = true;
-        updateInterfaceStatus();
-        return;
-      }
+      resetPurchased();
+      if (!file) return;
+      ui.loading.add("purchased");
+      syncInterface();
       try {
         ensureXlsx();
         state.purchasedWorkbook = await readWorkbook(file);
         populatePurchasedSheetSelect(state.purchasedWorkbook.SheetNames);
-        updateInterfaceStatus();
-        showMessage("已購買書單已載入，請選擇工作表並設定查重欄位。", false);
+        if (state.purchasedWorkbook.SheetNames.length === 1) {
+          els.purchasedSheet.value = state.purchasedWorkbook.SheetNames[0];
+          loadPurchasedSheet();
+        }
       } catch (error) {
         resetPurchased();
-        showMessage(error.message || "已購買書單讀取失敗。", true);
+        showMessage(error.message || "已購買書單讀取失敗，請重新選擇檔案。", true);
+      } finally {
+        ui.loading.delete("purchased");
+        updateInterfaceStatus();
       }
     });
 
@@ -1012,24 +780,25 @@
       if (!file) return;
       try {
         els.keywordText.value = await readTextFile(file);
+        ui.csvStamp = "";
+        byId("csvFeedback").innerHTML = "";
+        clearOutputs();
+        clearUiErrors();
+        updateInterfaceStatus();
         showMessage("系所關鍵字 CSV 已載入。", false);
       } catch (error) {
         showMessage(error.message || "CSV 讀取失敗。", true);
       }
     });
 
-    els.copyPromptButton.addEventListener("click", async () => {
-      try {
-        await copyText(buildAiPrompt());
-        showMessage("Prompt 已複製。完成後請將 AI 產生的 CSV 貼回工具。", false);
-      } catch (error) {
-        showMessage("瀏覽器無法自動複製，請手動選取 Prompt 內容。", true);
-      }
-    });
+    els.copyPromptButton.addEventListener("click", prepareAiPrompt);
 
     els.form.addEventListener("submit", (event) => {
       event.preventDefault();
-      runConversion();
+      if (ui.busy || ui.loading.size) return;
+      if (ui.step === "review") runConversion();
+      else if (ui.step === "department" && ui.aiStep === 0) prepareAiPrompt();
+      else advanceStep();
     });
 
     document.querySelectorAll('input[name="processingMode"]').forEach((radio) => {
@@ -1048,8 +817,8 @@
       });
     });
 
-    els.sourceMapping.addEventListener("change", updateInterfaceStatus);
-    els.purchasedMapping.addEventListener("change", updateInterfaceStatus);
+    els.sourceMapping.addEventListener("change", () => { clearOutputs(); updateInterfaceStatus(); });
+    els.purchasedMapping.addEventListener("change", () => { clearOutputs(); updateInterfaceStatus(); });
     [els.schoolCode, els.subjectCode, els.sdgs].forEach((input) => input.addEventListener("input", updateInterfaceStatus));
 
     els.downloadOutput.addEventListener("click", (event) => forceWorkbookDownload(event, state.outputBytes, els.downloadOutput.download));
@@ -1090,7 +859,7 @@
 
     function populatePurchasedSheetSelect(sheetNames) {
       els.purchasedSheet.innerHTML = "";
-      els.purchasedSheet.appendChild(new Option("不使用已購買書單", ""));
+      els.purchasedSheet.appendChild(new Option("請選擇工作表", ""));
       sheetNames.forEach((name) => els.purchasedSheet.appendChild(new Option(name, name)));
       els.purchasedSheet.value = "";
       els.purchasedSheet.disabled = !sheetNames.length;
@@ -1098,6 +867,9 @@
 
     function loadSourceSheet() {
       if (!state.sourceWorkbook || !els.sourceSheet.value) return;
+      state.sourceData = null;
+      els.sourceMapping.innerHTML = "";
+      els.sourceMappingSection.hidden = true;
       state.sourceData = readWorksheetAsTable(state.sourceWorkbook, els.sourceSheet.value);
       renderMappingControls(els.sourceMapping, SOURCE_FIELDS, state.sourceData.headers, "source-field");
       applySourceGuesses();
@@ -1113,34 +885,14 @@
         els.purchasedMappingSection.hidden = true;
         return;
       }
+      state.purchasedData = null;
+      els.purchasedMapping.innerHTML = "";
+      els.purchasedMappingSection.hidden = true;
       state.purchasedData = readWorksheetAsTable(workbook, els.purchasedSheet.value);
       renderMappingControls(els.purchasedMapping, PURCHASED_FIELDS, state.purchasedData.headers, "purchased-field");
       applyPurchasedGuesses();
       updateProcessingMode();
       updateInterfaceStatus();
-    }
-
-    function renderMappingControls(container, fields, headers, attrName) {
-      container.innerHTML = "";
-      fields.forEach((field) => {
-        const label = document.createElement("label");
-        label.setAttribute("data-mapping-key", field.key);
-        label.setAttribute("data-mapping-type", attrName);
-        const title = document.createElement("span");
-        title.innerHTML = `${escapeHtml(field.label)} <span class="required-mark" hidden>*</span>`;
-        const select = document.createElement("select");
-        select.setAttribute(`data-${attrName}`, field.key);
-        select.appendChild(new Option("不指定", ""));
-        headers.forEach((header, index) => {
-          const displayName = header ? `${header}（第 ${index + 1} 欄）` : `空白欄名（第 ${index + 1} 欄）`;
-          select.appendChild(new Option(displayName, String(index)));
-        });
-        const help = document.createElement("small");
-        help.textContent = field.help;
-        label.append(title, select, help);
-        container.appendChild(label);
-      });
-      updateRequiredIndicators();
     }
 
     function getProcessingMode() {
@@ -1181,7 +933,7 @@
       els.departmentSection.hidden = !flags.includeDepartment;
       els.purchasedFileField.hidden = !flags.includePurchase;
       els.purchasedSheetField.hidden = !flags.includePurchase;
-      els.purchasedFileLabel.textContent = flags.includePurchase ? "已購買書單（必填）" : "已購買書單";
+      els.purchasedFileLabel.textContent = "已購買書單";
       els.purchasedMappingSection.hidden = !flags.includePurchase || !state.purchasedData;
       els.uploadPanel.hidden = !flags.includeUpload;
       els.departmentStat.hidden = !flags.includeDepartment;
@@ -1193,10 +945,10 @@
     }
 
     function getSubmitButtonText(mode = getProcessingMode()) {
-      if (mode === "department") return "執行系所比對並產生 Excel";
-      if (mode === "purchase") return "執行購買查重並產生 Excel";
+      if (mode === "department") return "產生比對結果 Excel";
+      if (mode === "purchase") return "產生比對結果 Excel";
       if (mode === "upload") return "產生系統上傳格式";
-      return "執行完整流程並產生檔案";
+      return "產生兩份 Excel";
     }
 
     function updateRequiredIndicators() {
@@ -1212,6 +964,7 @@
         const mark = label.querySelector(".required-mark");
         if (mark) mark.hidden = !required;
       });
+      arrangeMappingFields();
     }
 
     function applySourceGuesses() {
@@ -1297,6 +1050,8 @@
           if (!departmentRules.length) throw new Error(`系所關鍵字 CSV 找不到「${schoolName}」的資料。`);
         }
 
+        ui.busy = true;
+        syncInterface();
         els.submitButton.disabled = true;
         els.submitButton.textContent = "處理中...";
         els.processingIndicator.hidden = false;
@@ -1325,9 +1080,14 @@
         } else {
           showMessage("處理完成。結果欄位已新增至原始欄位之後。", false);
         }
+        ui.step = "complete";
+        setRoute();
+        syncInterface();
+        focusStage();
       } catch (error) {
         showMessage(error.message || "處理失敗，請確認檔案與欄位設定。", true);
       } finally {
+        ui.busy = false;
         els.processingIndicator.hidden = true;
         els.processingText.textContent = "正在處理書單，請稍候...";
         els.form.removeAttribute("aria-busy");
@@ -1362,20 +1122,20 @@
 
     function validateSourceMap(map, flags) {
       if (flags.includeDepartment && map.title === null) {
-        throw new Error("請指定出版社書單的 title：書名欄位。");
+        throw new Error("請選擇出版社書單中放書名的欄位。");
       }
       if (flags.includePurchase && map.source_purchase_key === null) {
-        throw new Error("請指定 source_purchase_key：出版社 ISBN / 查重欄位。");
+        throw new Error("請選擇出版社書單的 ISBN／查重欄位。");
       }
     }
 
     function validatePurchasedMap(sourceMap, purchasedMap) {
-      if (sourceMap.source_purchase_key === null) throw new Error("請指定出版社書單的 source_purchase_key。");
-      if (purchasedMap.purchased_key === null) throw new Error("請指定已購買書單的 purchased_key。");
+      if (sourceMap.source_purchase_key === null) throw new Error("請選擇出版社書單的 ISBN／查重欄位。");
+      if (purchasedMap.purchased_key === null) throw new Error("請選擇已購買書單的 ISBN／查重欄位。");
     }
 
     function validateUploadMap(map) {
-      if (map.title === null) throw new Error("請指定出版社書單的 title：書名欄位。");
+      if (map.title === null) throw new Error("請選擇出版社書單中放書名的欄位。");
     }
 
     function updateInterfaceStatus() {
@@ -1435,6 +1195,7 @@
       els.uploadReadiness.textContent = ready
         ? (flags.mode === "combined" ? "系統上傳設定完成。" : "設定完成：可產生系統上傳格式。")
         : `尚未就緒：請完成 ${missing.join("、")}。`;
+      syncInterface();
     }
 
     function setStatusRow(row, ready, text) {
@@ -1986,6 +1747,7 @@ ${description}
     }
 
     function clearOutputs() {
+      if (ui.step === "complete") { ui.step = "review"; setRoute(true); }
       state.lastConversion = null;
       revokeOutputUrls();
       els.result.hidden = true;
@@ -2004,8 +1766,8 @@ ${description}
 
     function showMessage(text, isError) {
       els.message.textContent = text;
-      els.message.classList.toggle("error", Boolean(isError));
-      els.message.hidden = false;
+      els.message.hidden = !isError;
+      if (isError && ui.mode) els.message.focus({ preventScroll: true });
     }
 
     function escapeHtml(value) {
@@ -2017,6 +1779,9 @@ ${description}
         "'": "&#39;",
       }[char]));
     }
+    setAiPage(0);
+    readUiRoute();
+    syncInterface();
   </script>
 </body>
 </html>
