@@ -85,33 +85,41 @@ async function downloadRows(page, selector) {
       if (['department', 'combined'].includes(mode)) {
         if (mode === 'department') {
           assert.equal(await page.locator('#sourceDepartmentText').count(), 0);
-          assert.equal((await page.locator('#copyPromptButton').innerText()).trim(), '下一步');
-          await page.click('#copyPromptButton');
+          assert.equal((await page.locator('#showPromptButton').innerText()).trim(), '下一步');
+          await page.click('#showPromptButton');
           assert(await page.locator('#schoolName').getAttribute('aria-invalid'));
+          // Showing a prompt must work even when clipboard access is denied.
+          await page.evaluate(() => {
+            window.clipboardWrites = 0;
+            navigator.clipboard.writeText = async () => { window.clipboardWrites++; throw new Error('Clipboard denied'); };
+          });
           await page.fill('#schoolName', '測試大學');
-          await page.click('#copyPromptButton');
-          await page.getByRole('heading', { name: 'AI 指令已複製', exact: true }).waitFor();
-          const prompt = await page.evaluate(() => navigator.clipboard.readText());
+          await page.click('#showPromptButton');
+          await page.locator('#aiPromptText:visible').waitFor();
+          const prompt = await page.locator('#aiPromptText').inputValue();
           assert(prompt.includes('測試大學') && prompt.includes('官方網站') && prompt.includes('自行查找'));
           assert(!prompt.includes('Corporate Finance'), 'The AI prompt must not include the uploaded workbook');
-          assert.equal(await page.locator('#copyPromptConfirm').evaluate(el => el === document.activeElement), true);
-          await page.keyboard.press('Escape');
-          assert(await page.locator('#copyPromptDialog').isVisible(), 'Escape must not dismiss the acknowledgement');
-          await page.mouse.click(5, 5);
-          assert(await page.locator('#copyPromptDialog').isVisible(), 'Backdrop click must not dismiss the acknowledgement');
-          await page.click('#copyPromptConfirm');
-          assert(await page.locator('#copyPromptDialog').isHidden());
-          assert(await page.locator('[data-ai-page="1"]').isVisible());
-          // Clipboard failure must offer manual copying and never claim success.
-          await page.evaluate(() => {
-            window.restoreClipboardWrite = navigator.clipboard.writeText.bind(navigator.clipboard);
-            navigator.clipboard.writeText = async () => { throw new Error('Test: clipboard permission denied'); };
-          });
-          await page.click('[data-action="copy-again"]');
-          await page.getByRole('heading', { name: '請手動複製 AI 指令', exact: true }).waitFor();
-          assert((await page.locator('#copyPromptManual').inputValue()).includes('測試大學'));
-          await page.click('#copyPromptConfirm');
-          await page.evaluate(() => { navigator.clipboard.writeText = window.restoreClipboardWrite; delete window.restoreClipboardWrite; });
+          assert(await page.locator('#aiPromptText').evaluate(el => el.readOnly));
+          assert.equal(await page.locator('dialog').count(), 0);
+          assert(await page.locator('#aiPromptHeading').evaluate(el => el === document.activeElement));
+          assert.equal(await page.locator('.ai-instructions > li').count(), 3);
+          await page.click('[data-action="select-prompt"]');
+          assert(await page.locator('#aiPromptText').evaluate(el => el === document.activeElement && el.selectionStart === 0 && el.selectionEnd === el.value.length));
+          assert.equal(await page.evaluate(() => window.clipboardWrites), 0, 'No automatic clipboard writes');
+          await page.keyboard.press(process.platform === 'darwin' ? 'Meta+C' : 'Control+C');
+          assert.equal(await page.evaluate(() => navigator.clipboard.readText()), prompt, 'Manual copy must include the entire instruction');
+          for (const width of [375, 768, 1440]) {
+            await page.setViewportSize({ width, height: 1000 });
+            assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `AI instructions overflow at ${width}px`);
+          }
+          await page.setViewportSize({ width: 1440, height: 1000 });
+          await page.click('[data-action="edit-departments"]:visible');
+          await page.fill('#schoolName', '另一所測試大學');
+          await page.locator('#showPromptButton').press('Enter');
+          assert((await page.locator('#aiPromptText').inputValue()).includes('學校名稱：另一所測試大學'));
+          await page.click('[data-action="edit-departments"]:visible');
+          await page.fill('#schoolName', '測試大學');
+          await page.click('#showPromptButton');
           await page.click('[data-action="return-csv"]');
         } else {
           await page.click('[data-action="existing-csv"]');

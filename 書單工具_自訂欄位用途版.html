@@ -152,13 +152,9 @@
     .privacy-detail { margin-top:22px; }
     .privacy-detail summary { font-size:13px; font-weight:400; color:var(--muted); }
     .privacy-detail p { color:var(--muted); font-size:13px; margin-top:7px; }
-    .copy-dialog { width:min(480px,calc(100% - 40px)); max-height:calc(100dvh - 40px); overflow:auto; padding:31px; border:1px solid var(--line); border-radius:12px; color:var(--text); background:var(--panel); box-shadow:0 18px 64px rgb(0 0 0 / 18%); }
-    .copy-dialog::backdrop { background:rgb(0 0 0 / 42%); }
-    .copy-dialog h2 { margin-top:17px; font-size:21px; }
-    .copy-dialog p { margin-top:10px; font-size:15px; color:var(--muted); }
-    .copy-dialog .copy-symbol { display:grid; place-items:center; width:44px; height:44px; border-radius:10px; color:var(--text); background:var(--soft); }
-    .copy-dialog .btn { width:100%; margin-top:25px; }
-    .copy-dialog textarea { min-height:180px; }
+    .ai-prompt { min-height:300px; font-size:14px; }
+    .ai-instructions .inline-actions { margin-top:12px; }
+    .ai-instructions p,.ai-instructions .inline-actions span { font-size:14px; color:var(--muted); }
     @keyframes spin { to { transform:rotate(360deg); } }
     @media(min-width:1100px) { .sidebar { position:sticky; top:0; height:calc(100vh - 76px); } }
     @media(max-width:1050px) { .workspace { grid-template-columns:200px minmax(0,1fr); } .stage { padding:32px 27px; } .sidebar { padding:30px 19px; } .surface { padding:23px; } .task { grid-template-columns:195px minmax(0,1fr) 22px; gap:20px; } .mapping-head,.mapping-row { grid-template-columns:125px minmax(0,1fr); gap:30px; } .mapping-arrow { right:-23px; } }
@@ -213,12 +209,22 @@
           <section id="departmentSection">
             <div id="aiPurpose" class="ai-purpose"><h3>讓 AI 自動查找學校系所並整理關鍵字</h3><div class="keyword-example"><span>學校名稱</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>官網系所 ＋ 中英文關鍵字</span></div><p>填寫學校名稱，再把指令貼到可連網的 AI。</p></div>
             <div id="aiShortcut" class="ai-shortcut"><button type="button" class="text-button" data-action="existing-csv">已有關鍵字表？直接貼上或匯入 CSV<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div>
-            <div class="surface"><ol id="aiProgress" class="ai-progress"><li>1 填寫學校名稱</li><li>2 請 AI 查找系所</li><li>3 貼回關鍵字表</li></ol>
+            <div class="surface"><ol id="aiProgress" class="ai-progress"><li>1 填寫學校名稱</li><li>2 複製指令給 AI</li><li>3 貼上 AI 回覆</li></ol>
               <div id="aiSchoolField" class="field"><label for="schoolName">學校名稱</label><input id="schoolName" type="text" placeholder="例如：淡江大學" autocomplete="off"></div>
-              <section data-ai-page="0"><div class="inline-actions"><button id="copyPromptButton" class="btn primary" type="button">下一步<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
-              <section data-ai-page="1" hidden><div class="ai-subheading"><h2>讓 AI 查找系所並產生關鍵字</h2><span class="location-tag">在 AI 工具操作</span></div><ol class="ai-instructions"><li>開啟可連網的 AI 聊天視窗。</li><li><strong>貼上已複製的指令並送出。</strong>AI 會到學校官網查找系所，再整理關鍵字。</li><li>AI 回覆後，<strong>複製整段關鍵字表</strong>，包含第一列欄名。</li></ol><div class="expected-result">AI 回覆範例<pre>學校名稱,系所名稱,關鍵字
-淡江大學,財務金融學系,金融;投資;finance</pre></div><div class="inline-actions"><button class="btn primary" type="button" data-action="return-csv">已複製結果，回來貼上</button><button class="text-button" type="button" data-action="copy-again">重新複製指令</button></div><button class="text-button" type="button" data-action="edit-departments">返回修改學校名稱</button></section>
-              <section data-ai-page="2" hidden><div class="field"><label for="keywordText">系所關鍵字表（CSV 格式）</label><textarea id="keywordText" placeholder="學校名稱,系所名稱,關鍵字&#10;淡江大學,財務金融學系,金融;投資;finance"></textarea></div><input id="keywordFile" type="file" accept=".csv,.txt" hidden aria-label="系所關鍵字 CSV"><div class="inline-actions"><button class="btn" type="button" data-action="check-csv">檢查關鍵字表</button><button class="text-button" type="button" data-file="keywordFile">匯入 CSV 檔</button><button class="text-button" type="button" data-action="edit-departments">重新用 AI 整理</button></div><div id="csvFeedback" aria-live="polite"></div><details class="privacy-detail"><summary>查看關鍵字表格式</summary><pre>學校名稱,系所名稱,關鍵字
+              <section data-ai-page="0"><div class="inline-actions"><button id="showPromptButton" class="btn primary" type="button">下一步<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
+              <section data-ai-page="1" hidden>
+                <div class="ai-subheading"><h2 id="aiPromptHeading" tabindex="-1">照下面 3 步，請 AI 整理系所</h2></div>
+                <ol class="ai-instructions">
+                  <li><strong>複製下面整段指令。</strong>
+                    <div class="field"><label for="aiPromptText">給 AI 的完整指令</label><textarea id="aiPromptText" class="ai-prompt" readonly aria-describedby="aiPromptCopyHelp" spellcheck="false"></textarea></div>
+                    <div class="inline-actions"><button class="btn" type="button" data-action="select-prompt">選取全部指令</button><span id="aiPromptCopyHelp">選取後按右鍵選「複製」，或按 Ctrl+C（Mac：⌘C）。</span></div>
+                  </li>
+                  <li><strong>開啟你使用的 AI，貼上指令並送出。</strong><p>記得開啟 AI 的「搜尋網路」功能，讓它到學校官網找系所。</p></li>
+                  <li><strong>等 AI 回覆後，複製整份結果。</strong><p>從「學校名稱,系所名稱,關鍵字」這一行開始，全部複製，再按下方按鈕回來貼上。</p></li>
+                </ol>
+                <div class="inline-actions"><button class="btn primary" type="button" data-action="return-csv">下一步：貼上 AI 的回覆</button><button class="text-button" type="button" data-action="edit-departments">返回修改學校名稱</button></div>
+              </section>
+              <section data-ai-page="2" hidden><div class="field"><h2>貼上 AI 的回覆</h2><label for="keywordText">把剛剛複製的整份結果貼在這裡</label><textarea id="keywordText" placeholder="學校名稱,系所名稱,關鍵字&#10;淡江大學,財務金融學系,金融;投資;finance"></textarea></div><input id="keywordFile" type="file" accept=".csv,.txt" hidden aria-label="系所關鍵字 CSV"><div class="inline-actions"><button class="btn" type="button" data-action="check-csv">檢查關鍵字表</button><button class="text-button" type="button" data-file="keywordFile">匯入 CSV 檔</button><button class="text-button" type="button" data-action="edit-departments">返回學校名稱與 AI 指令</button></div><div id="csvFeedback" aria-live="polite"></div><details class="privacy-detail"><summary>查看關鍵字表格式</summary><pre>學校名稱,系所名稱,關鍵字
 淡江大學,財務金融學系,金融;投資;finance</pre></details></section>
             </div>
           </section>
@@ -233,13 +239,6 @@
       <div hidden aria-hidden="true"><div id="sourceStatus"><small></small></div><div id="mappingStatus"><small></small></div><div id="purchasedStatus"><small></small></div></div>
     </main>
   </div>
-  <dialog id="copyPromptDialog" class="copy-dialog" aria-labelledby="copyPromptTitle" aria-describedby="copyPromptDescription">
-    <div class="copy-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4h10v13H9zM5 8v12h10"/></svg></div>
-    <h2 id="copyPromptTitle">AI 指令已複製</h2>
-    <p id="copyPromptDescription"></p>
-    <div id="copyPromptManualField" class="field" hidden><label for="copyPromptManual">完整 AI 指令</label><textarea id="copyPromptManual" readonly></textarea></div>
-    <button id="copyPromptConfirm" class="btn primary" type="button" autofocus>我知道了</button>
-  </dialog>
   <script>
     const SOURCE_FIELDS = [
       { key: "title", label: "title：書名", required: true, help: "系所比對與系統上傳時必填。" },
@@ -337,7 +336,7 @@
       sdgs: document.querySelector("#sdgs"),
       sdgsManualField: document.querySelector("#sdgsManualField"),
       sdgModeDescription: document.querySelector("#sdgModeDescription"),
-      copyPromptButton: document.querySelector("#copyPromptButton"),
+      showPromptButton: document.querySelector("#showPromptButton"),
       keywordText: document.querySelector("#keywordText"),
       keywordFile: document.querySelector("#keywordFile"),
       submitButton: document.querySelector("#submitButton"),
@@ -363,7 +362,7 @@
     };
 
     // UI state stays in memory; the existing workbook and matching functions remain authoritative.
-    const ui = { mode: null, step: "files", aiStep: 0, csvStamp: "", busy: false, copying: false, loading: new Set() };
+    const ui = { mode: null, step: "files", aiStep: 0, csvStamp: "", busy: false, loading: new Set() };
     const uiModes = {
       department: { name: "系所比對", steps: ["files", "mapping", "department", "review"] },
       purchase: { name: "購買查重", steps: ["files", "mapping", "review"] },
@@ -567,35 +566,12 @@
       syncInterface();
     }
 
-    async function prepareAiPrompt() {
-      if (ui.copying) return;
+    function showAiPrompt() {
       clearUiErrors();
       if (!cleanText(els.schoolName.value)) { showStepIssue({ message: "請填寫學校名稱。", selector: "#schoolName" }); return; }
-      const mode = ui.mode;
-      const school = cleanText(els.schoolName.value);
-      const prompt = buildAiPrompt();
-      ui.copying = true;
-      els.copyPromptButton.disabled = true;
-      els.copyPromptButton.setAttribute("aria-busy", "true");
-      let copied = false;
-      try { await copyText(prompt); copied = true; } catch (_) { /* Offer manual copying without claiming clipboard success. */ }
-      finally {
-        ui.copying = false;
-        els.copyPromptButton.disabled = false;
-        els.copyPromptButton.removeAttribute("aria-busy");
-      }
-      if (ui.mode !== mode || ui.step !== "department" || cleanText(els.schoolName.value) !== school) return;
+      byId("aiPromptText").value = buildAiPrompt();
       setAiPage(1);
-      byId("copyPromptTitle").textContent = copied ? "AI 指令已複製" : "請手動複製 AI 指令";
-      byId("copyPromptDescription").textContent = copied
-        ? `接下來把指令貼到可連網的 AI，讓它查找「${school}」的系所並整理關鍵字。`
-        : "瀏覽器未允許自動複製。請選取下方完整指令並手動複製，再繼續。";
-      byId("copyPromptManualField").hidden = copied;
-      byId("copyPromptManual").value = copied ? "" : prompt;
-      byId("copyPromptConfirm").textContent = copied ? "我知道了" : "已手動複製，繼續";
-      byId("copyPromptDialog").showModal();
-      if (copied) byId("copyPromptConfirm").focus();
-      else { byId("copyPromptManual").focus(); byId("copyPromptManual").select(); }
+      byId("aiPromptHeading").focus();
     }
 
     function checkKeywordTable() {
@@ -686,7 +662,6 @@
     }
 
     function readUiRoute() {
-      if (byId("copyPromptDialog").open) { setRoute(true); return; }
       if (ui.busy || ui.loading.size) { setRoute(true); return; }
       const [mode, requestedStep] = location.hash.slice(1).split("/");
       if (!uiModes[mode]) { ui.mode = null; clearUiErrors(); syncInterface(); return; }
@@ -714,7 +689,7 @@
       }
       if (["existing-csv", "return-csv"].includes(action)) { clearUiErrors(); setAiPage(2); }
       if (action === "edit-departments") { clearUiErrors(); setAiPage(0); }
-      if (action === "copy-again") await prepareAiPrompt();
+      if (action === "select-prompt") { byId("aiPromptText").focus(); byId("aiPromptText").select(); }
       if (action === "check-csv") checkKeywordTable();
     });
 
@@ -727,11 +702,6 @@
         byId("csvFeedback").innerHTML = "";
       }
       syncInterface();
-    });
-    byId("copyPromptDialog").addEventListener("cancel", (event) => event.preventDefault());
-    byId("copyPromptConfirm").addEventListener("click", () => {
-      byId("copyPromptDialog").close();
-      byId("stageTitle").focus({ preventScroll: true });
     });
     window.addEventListener("popstate", readUiRoute);
     window.addEventListener("hashchange", readUiRoute);
@@ -830,13 +800,13 @@
       }
     });
 
-    els.copyPromptButton.addEventListener("click", prepareAiPrompt);
+    els.showPromptButton.addEventListener("click", showAiPrompt);
 
     els.form.addEventListener("submit", (event) => {
       event.preventDefault();
       if (ui.busy || ui.loading.size) return;
       if (ui.step === "review") runConversion();
-      else if (ui.step === "department" && ui.aiStep === 0) prepareAiPrompt();
+      else if (ui.step === "department" && ui.aiStep === 0) showAiPrompt();
       else advanceStep();
     });
 
@@ -1648,32 +1618,28 @@
 
     function buildAiPrompt() {
       const schoolName = cleanText(els.schoolName.value) || "【請填入學校名稱】";
-      return `你是一位圖書館電子書選書與學科分類助理。請使用網路搜尋，自行查找下列學校目前的正式系所，並為每個系所整理適合出版社書目比對的中英文關鍵字。使用者只提供學校名稱，不會提供系所清單。
+      return `請幫我上網查找這所學校目前有哪些系所，再替每個系所整理中英文關鍵字。這些關鍵字會用來從書名、主題和內容簡介中，找出適合該系所的書。
 
 學校名稱：${schoolName}
 
-查找與查證規則：
-1. 優先查閱該校官方網站的學術單位、學院、系所與招生頁面，逐一核對目前仍存在的教學單位。
-2. 涵蓋正式學系、獨立研究所與學位學程；以校方最新可查證資料為準。跨頁查找後合併去重，不要只列幾個範例。
-3. 使用官方完整名稱；不要憑記憶補系所、推測不存在的單位，或把行政單位、一般研究中心當成系所。
-4. 不要加入其他學校的系所，不要合併不同系所，不要重複列出同一單位。
-5. 如果無法連網、無法確認是哪所學校，或找不到可查證的官方系所資料，請直接說明無法完成的原因，不要編造 CSV。
+請一步一步處理：
+1. 到這所學校的官方網站，自行查找學院、系所和招生頁面，確認目前有哪些學系、獨立研究所和學位學程。以校方目前公布的最新資料為準，請把各頁找到的資料合在一起，不要只給幾個例子。
+2. 使用學校官方公布的完整名稱。同一個系所只列一次，不要把不同系所合併，也不要混入其他學校、行政單位或一般研究中心。找不到的系所不要猜，也不要憑記憶補上。
+3. 每個系所整理至少 12 個關鍵字，要同時有中文和英文。請選這個領域常見的學科名稱、研究方向，以及英文書名、摘要和主題中可能出現的詞。
+4. 不要只用 research、introduction、theory、practice、management 這類太籠統的英文單字；需要時，請搭配具體領域寫成詞組。
+5. 如果你不能上網、不確定是哪所學校，或找不到可確認的官方資料，請直接告訴我原因，不要編造結果。
 
-成功查證後，只輸出以下三欄 CSV 純文字，不要 Markdown、程式碼區塊或額外說明，也不要在 CSV 內放來源網址或引用標記。
+確認完成後，請把結果排成下面這種用逗號分欄的表格文字（CSV），讓我可以直接複製回工具：
+學校名稱,系所名稱,關鍵字
 
-CSV 輸出規則：
-1. 第一列固定為：學校名稱,系所名稱,關鍵字
-2. 每一列只放一個系所。
-3. 學校名稱必須完全使用：${schoolName}
-4. 系所名稱必須是已從官方資料查證的完整正式名稱。
-5. 關鍵字用半形分號 ; 分隔，不要用逗號分隔關鍵字。
-6. 每個系所至少產生 12 個關鍵字。
-7. 關鍵字要包含中文與英文。
-8. 英文關鍵字要包含學科正式名稱、常見書名詞、研究主題詞，以及出版社書目標題、摘要或主題分類可能出現的詞。
-9. 避免太廣泛的單詞，例如 research、introduction、theory、practice、management 不要單獨列入，除非和具體領域組成片語。
-10. 欄位文字若含逗號或雙引號，請依 CSV 規則以雙引號包住，並把內部雙引號寫成兩個雙引號。每筆資料維持一行。
-
-請直接輸出 CSV。`;
+請遵守以下格式：
+1. 第一行固定是：學校名稱,系所名稱,關鍵字
+2. 後面每一行只寫一個系所，三欄依序為學校名稱、系所名稱、關鍵字。
+3. 每行的學校名稱都必須完全寫成：${schoolName}
+4. 系所名稱要用已從學校官網確認的完整名稱。
+5. 同一系所的關鍵字之間用半形分號 ; 隔開，不要用逗號。
+6. 如果一欄的內容含有逗號或雙引號，請用雙引號包住整欄；內容裡的每個雙引號要連寫兩個。每個系所維持一行。
+7. 只給我上面的表格文字，不要另外加標題、說明、網址、引用標記或程式碼框。`;
     }
 
     function readWorkbook(file) {
@@ -1698,23 +1664,6 @@ CSV 輸出規則：
         reader.onerror = () => reject(new Error("CSV 讀取失敗。"));
         reader.readAsText(file, "utf-8");
       });
-    }
-
-    async function copyText(text) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-      }
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      const ok = document.execCommand("copy");
-      textarea.remove();
-      if (!ok) throw new Error("copy failed");
     }
 
     function getCell(row, index) {
